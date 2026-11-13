@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id            String         @id @default(cuid())
+  userId        Int
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  monitors      Monitor[]
+  alertChannels AlertChannel[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Monitor {
+  id        String          @id @default(cuid())
+  projectId String
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  method    HttpMethod      @default(GET)
+  interval  Int             @default(60)
+  status    MonitorStatus   @default(PENDING)
+  results   MonitorResult[]
+  incidents Incident[]
+  logs      MonitorLog[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model MonitorResult {
+  id           String   @id @default(cuid())
+  monitorId    String
+  monitor      Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  responseTime Int      // Response time in milliseconds
+  statusCode   Int?     // Nullable in case the request times out or fails to connect
+  success      Boolean
+  checkedAt    DateTime @default(now())
+
+  @@index([monitorId, checkedAt])
+}
+
+model Incident {
+  id          String         @id @default(cuid())
+  monitorId   String
+  monitor     Monitor        @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  startedAt   DateTime       @default(now()) // Failure start timestamp
+  resolvedAt  DateTime?      // Recovery timestamp (null while ongoing)
+  duration    Int?           // Duration in seconds, calculated upon recovery
+  status      IncidentStatus @default(ONGOING)
+  cause       String?        // Optional summary of the failure reason
+
+  @@index([monitorId, status])
+}
+
+model MonitorLog {
+  id              String   @id @default(cuid())
+  monitorId       String
+  monitor         Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  requestDetails  Json?    // Stores headers, payload, or query params
+  error           String?  // Error message or stack trace if failed
+  executionResult String   // Summary outcome (e.g., "SUCCESS", "TIMEOUT", "DNS_ERROR")
+  createdAt       DateTime @default(now())
+
+  @@index([monitorId, createdAt])
+}
+
+model AlertChannel {
+  id          String           @id @default(cuid())
+  projectId   String
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        AlertChannelType
+  destination String           // Email address or Slack webhook URL
+  preferences Json?            // Notification rules (e.g., notify on down, recovery, threshold)
+  enabled     Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  HEAD
+}
+
+enum MonitorStatus {
+  UP
+  DOWN
+  PENDING
+  PAUSED
+}
+
+enum IncidentStatus {
+  ONGOING
+  RESOLVED
+}
+
+enum AlertChannelType {
+  EMAIL
+  SLACK
+}

@@ -1,0 +1,684 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ========================================
+   1. DESIGN TOKENS
+======================================== */
+
+:root {
+  color-scheme: dark;
+
+  --background: #0C0D0F;
+  --surface: #111318;
+  --surface-secondary: #1A1F28;
+  --surface-hover: #202633;
+
+  --border: #2A2F3A;
+  --border-light: #363D4A;
+
+  --primary: #8B5CF6;
+  --primary-hover: #7C3AED;
+  --primary-soft: rgba(139, 92, 246, 0.14);
+
+  --accent: #06B6D4;
+
+  --success: #22C55E;
+  --success-soft: rgba(34, 197, 94, 0.12);
+
+  --warning: #F59E0B;
+  --warning-soft: rgba(245, 158, 11, 0.12);
+
+  --error: #EF4444;
+  --error-soft: rgba(239, 68, 68, 0.12);
+
+  --info: #3B82F6;
+
+  --foreground: #F3F4F6;
+  --muted: #9CA3AF;
+  --muted-dark: #6B7280;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --sidebar-width: 240px;
+  --header-height: 68px;
+
+  --transition: 200ms ease;
+
+  --shadow-card:
+    0 4px 20px rgba(0, 0, 0, 0.18);
+
+  --shadow-purple:
+    0 4px 20px rgba(139, 92, 246, 0.20);
+}
+
+/* Tailwind v4 utility theme */
+
+@theme {
+  --font-inter: "Inter", sans-serif;
+
+  --color-background: #0C0D0F;
+  --color-surface: #111318;
+  --color-surface-secondary: #1A1F28;
+
+  --color-primary: #8B5CF6;
+  --color-accent: #06B6D4;
+
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  --color-foreground: #F3F4F6;
+  --color-muted: #9CA3AF;
+  --color-border: #2A2F3A;
+}
+
+/* ========================================
+   2. GLOBAL RESET
+======================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+
+  min-height: 100vh;
+
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+/* ========================================
+   3. SCROLLBAR
+======================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #343947;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ========================================
+   4. APPLICATION LAYOUT
+======================================== */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+
+  padding: 20px 14px;
+  z-index: 50;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--sidebar-width);
+}
+
+.topbar {
+  height: var(--header-height);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.page-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+/* ========================================
+   5. SIDEBAR NAVIGATION
+======================================== */
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 8px 10px 28px;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sidebar-logo-icon {
+  color: var(--primary);
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 11px 12px;
+
+  color: var(--muted);
+  border-radius: var(--radius-md);
+
+  transition: var(--transition);
+}
+
+.nav-link:hover {
+  background: var(--surface-secondary);
+  color: var(--foreground);
+}
+
+.nav-link.active {
+  background: var(--primary-soft);
+  color: #A78BFA;
+  font-weight: 600;
+}
+
+/* ========================================
+   6. CARDS
+======================================== */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+
+  box-shadow: var(--shadow-card);
+
+  transition:
+    border-color var(--transition),
+    background var(--transition);
+}
+
+.card:hover {
+  border-color: var(--border-light);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ========================================
+   7. METRIC CARDS
+======================================== */
+
+.metric-card {
+  background: linear-gradient(
+    145deg,
+    #151922,
+    #111318
+  );
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  padding: 20px;
+}
+
+.metric-label {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.metric-change {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.metric-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+
+  display: grid;
+  place-items: center;
+
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* ========================================
+   8. BUTTONS
+======================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+
+  font-weight: 600;
+  font-size: 13px;
+
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-purple);
+}
+
+.btn-secondary {
+  background: var(--surface-secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-hover);
+}
+
+.btn-danger {
+  background: var(--error-soft);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* ========================================
+   9. STATUS BADGES
+======================================== */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 10px;
+
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-up {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.status-down {
+  color: var(--error);
+  background: var(--error-soft);
+}
+
+.status-warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.status-info {
+  color: var(--info);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+/* ========================================
+   10. INPUTS
+======================================== */
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+
+  color: var(--foreground);
+
+  padding: 11px 13px;
+
+  border-radius: var(--radius-md);
+  outline: none;
+
+  transition: var(--transition);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--muted-dark);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* ========================================
+   11. TABLES
+======================================== */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  padding: 14px 16px;
+
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+
+  background: var(--surface-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 16px;
+
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ========================================
+   12. GLASSMORPHISM
+======================================== */
+
+.glass {
+  background: rgba(26, 31, 40, 0.65);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: var(--radius-xl);
+}
+
+.glass-purple {
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ========================================
+   13. CHART CONTAINERS
+======================================== */
+
+.chart-container {
+  width: 100%;
+  min-height: 280px;
+  position: relative;
+}
+
+.chart-tooltip {
+  background: #1A1F28;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+
+  color: var(--foreground);
+  box-shadow: var(--shadow-card);
+}
+
+/* ========================================
+   14. GRADIENTS
+======================================== */
+
+.gradient-primary {
+  background: linear-gradient(
+    135deg,
+    #8B5CF6,
+    #6D28D9
+  );
+}
+
+.gradient-text {
+  background: linear-gradient(
+    90deg,
+    #A78BFA,
+    #06B6D4
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glow-purple {
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+/* ========================================
+   15. ANIMATIONS
+======================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 300ms ease forwards;
+}
+
+@keyframes pulseStatus {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.status-pulse {
+  animation: pulseStatus 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   16. RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 72px;
+  }
+
+  .sidebar-logo span,
+  .nav-link span,
+  .sidebar-extra {
+    display: none;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 13px;
+  }
+
+  .page-container {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .page-container {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .metric-value {
+    font-size: 23px;
+  }
+}
+
+/* Purple ambient lighting */
+
+.hero-ambient {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  background: #6d28d9;
+  filter: blur(150px);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* Subtle background grid */
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(139, 92, 246, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(139, 92, 246, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 50px 50px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 5%,
+    black 100%
+  );
+
+  pointer-events: none;
+}
