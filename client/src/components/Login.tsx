@@ -8,10 +8,6 @@ interface LoginResponse {
   token?: string;
 }
 
-interface LoginErrorResponse {
-  error?: string;
-}
-
 interface LoginProps {
   onSwitchToSignup?: () => void;
 }
@@ -43,11 +39,21 @@ const Login = ({ onSwitchToSignup }: LoginProps) => {
       localStorage.setItem('token', data.token);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg = isAxiosError<LoginErrorResponse>(err)
-        ? err.response?.data?.error || err.message
-        : err instanceof Error
-          ? err.message
-          : 'Login failed. Please try again.';
+      let msg = 'Login failed. Please try again.';
+      if (isAxiosError(err)) {
+        const errorData = err.response?.data?.error;
+        if (typeof errorData === 'string') {
+          msg = errorData;
+        } else if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+          msg = String((errorData as { message: unknown }).message);
+        } else if (typeof err.response?.data?.message === 'string') {
+          msg = err.response.data.message;
+        } else {
+          msg = err.message || msg;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
       setError(msg);
     } finally {
       setIsLoading(false);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 
 interface SignupProps {
   onSwitchToLogin?: () => void;
@@ -41,8 +41,22 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
       setTimeout(() => {
         if (onSwitchToLogin) onSwitchToLogin();
       }, 1500);
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || 'Signup failed. Please try again.';
+    } catch (err: unknown) {
+      let msg = 'Signup failed. Please try again.';
+      if (isAxiosError(err)) {
+        const errorData = err.response?.data?.error;
+        if (typeof errorData === 'string') {
+          msg = errorData;
+        } else if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+          msg = String((errorData as { message: unknown }).message);
+        } else if (typeof err.response?.data?.message === 'string') {
+          msg = err.response.data.message;
+        } else {
+          msg = err.message || msg;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
       setError(msg);
     } finally {
       setIsLoading(false);
