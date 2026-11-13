@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { isAxiosError } from 'axios';
-import { api } from '../services/api';
+import axios, { isAxiosError } from 'axios';
 
 interface SignupProps {
   onSwitchToLogin?: () => void;
@@ -29,7 +28,7 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('Password must be at least 6 characters long');
       return;
     }
 
@@ -37,11 +36,11 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
     setError(null);
 
     try {
-      await api.post('/auth/signup', { email, password });
+      await axios.post('/api/auth/signup', { email, password });
       setSuccess('Account created successfully! Switching to sign in...');
       setTimeout(() => {
         if (onSwitchToLogin) onSwitchToLogin();
-      }, 1200);
+      }, 1500);
     } catch (err: unknown) {
       let msg = 'Signup failed. Please try again.';
       if (isAxiosError(err)) {
@@ -65,23 +64,23 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col justify-center gap-6 py-6 animate-fade-in text-neutral-100">
+    <div className="w-full max-w-md mx-auto flex flex-col justify-center gap-6 py-6 animate-fade-in text-gray-900">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold text-white tracking-tight">
+        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
           Create an account
         </h2>
-        <p className="text-sm text-neutral-400 mt-1.5">Start monitoring your APIs in minutes</p>
+        <p className="text-sm text-gray-500 mt-1.5">Start monitoring your APIs in minutes</p>
       </div>
 
       {/* Alerts */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-sm text-red-400 flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700 flex items-center justify-between">
           <span>{error}</span>
           <button
             type="button"
             onClick={() => setError(null)}
-            className="text-red-400 hover:text-red-300 font-bold ml-2 text-xs cursor-pointer"
+            className="text-red-500 hover:text-red-700 font-bold ml-2 text-xs cursor-pointer"
           >
             ✕
           </button>
@@ -89,8 +88,8 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
       )}
 
       {success && (
-        <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-sm text-emerald-400 flex items-center justify-between">
-          <span>{success}</span>
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">
+          {success}
         </div>
       )}
 
@@ -98,7 +97,7 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Email Field */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
             Email address
           </label>
           <input
@@ -107,13 +106,13 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] text-white text-sm placeholder-neutral-500 focus:outline-none focus:border-white transition-all bg-[#121212]"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all bg-white"
           />
         </div>
 
         {/* Password Field */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
             Password
           </label>
           <div className="relative">
@@ -123,12 +122,12 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[#262626] text-white text-sm placeholder-neutral-500 focus:outline-none focus:border-white transition-all bg-[#121212]"
+              className="w-full px-3.5 py-2.5 pr-11 rounded-xl border border-gray-300 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all bg-white"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white transition-colors p-1 cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -137,28 +136,28 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
 
         {/* Confirm Password Field */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
             Confirm Password
           </label>
           <input
             placeholder="••••••••"
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#262626] text-white text-sm placeholder-neutral-500 focus:outline-none focus:border-white transition-all bg-[#121212]"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 transition-all bg-white"
           />
         </div>
 
-        {/* Submit Button (High Contrast White on Black) */}
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-2 w-full py-3 px-4 rounded-xl font-semibold text-sm text-black bg-white hover:bg-neutral-200 active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          className="mt-2 w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition-all shadow-[0_4px_16px_rgba(99,102,241,0.35)] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-black" />
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
               <span>Creating account...</span>
             </>
           ) : (
@@ -169,17 +168,18 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
 
       {/* Divider */}
       <div className="relative flex items-center justify-center my-1">
-        <div className="w-full border-t border-[#222222]"></div>
-        <span className="absolute bg-[#000000] px-3 text-xs text-neutral-500 font-medium tracking-wide">
+        <div className="w-full border-t border-gray-200"></div>
+        <span className="absolute bg-white px-3 text-xs text-gray-400 font-medium tracking-wide">
           or continue with
         </span>
       </div>
 
       {/* Social Buttons */}
       <div className="grid grid-cols-2 gap-3">
+        {/* Google Button */}
         <button
           type="button"
-          className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-[#262626] bg-[#121212] hover:bg-[#1A1A1A] active:bg-[#222222] text-sm font-medium text-neutral-200 transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-sm font-medium text-gray-700 transition-all cursor-pointer shadow-xs bg-white"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -202,11 +202,12 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
           <span>Google</span>
         </button>
 
+        {/* GitHub Button */}
         <button
           type="button"
-          className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-[#262626] bg-[#121212] hover:bg-[#1A1A1A] active:bg-[#222222] text-sm font-medium text-neutral-200 transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-sm font-medium text-gray-700 transition-all cursor-pointer shadow-xs bg-white"
         >
-          <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 fill-current text-gray-800" viewBox="0 0 24 24">
             <path
               fillRule="evenodd"
               clipRule="evenodd"
@@ -217,13 +218,13 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
         </button>
       </div>
 
-      {/* Switch to Login */}
-      <p className="text-center text-xs sm:text-sm text-neutral-400 mt-2">
+      {/* Switch to Sign in */}
+      <p className="text-center text-xs sm:text-sm text-gray-500 mt-2">
         Already have an account?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-white hover:underline font-semibold cursor-pointer transition-colors"
+          className="text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer transition-colors underline-offset-2 hover:underline"
         >
           Sign in
         </button>
