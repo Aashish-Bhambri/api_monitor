@@ -38,15 +38,15 @@ export interface SidebarProps {
   onTabChange?: (tab: string) => void
 }
 
-// ─── Static data ──────────────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Overview',  icon: <LayoutDashboard size={15} /> },
-  { id: 'monitors',  label: 'Monitors',  icon: <Activity        size={15} /> },
-  { id: 'incidents', label: 'Incidents', icon: <AlertTriangle   size={15} /> },
-  { id: 'logs',      label: 'Logs',      icon: <FileText        size={15} /> },
-  { id: 'reports',   label: 'Reports',   icon: <BarChart2       size={15} /> },
-  { id: 'settings',  label: 'Settings',  icon: <Settings        size={15} /> },
+  { id: 'dashboard', label: 'Overview',   icon: <LayoutDashboard size={15} /> },
+  { id: 'monitors',  label: 'Monitors',   icon: <Activity        size={15} /> },
+  { id: 'incidents', label: 'Incidents',  icon: <AlertTriangle   size={15} /> },
+  { id: 'logs',       label: 'Logs',       icon: <FileText        size={15} /> },
+  { id: 'reports',    label: 'Reports',    icon: <BarChart2       size={15} /> },
+  { id: 'settings',   label: 'Settings',   icon: <Settings        size={15} /> },
 ]
 
 const STATUS_PAGES: StatusPageEntry[] = [
@@ -54,28 +54,28 @@ const STATUS_PAGES: StatusPageEntry[] = [
 ]
 
 const MONITORS: MonitorEntry[] = [
-  { id: 'prod',   label: 'Production API', status: 'up'       },
-  { id: 'pay',    label: 'Payments API',   status: 'up'       },
-  { id: 'user',   label: 'User Service',   status: 'up'       },
-  { id: 'notif',  label: 'Notifications',  status: 'degraded' },
-  { id: 'analyt', label: 'Analytics API',  status: 'down'     },
+  { id: 'prod',   label: 'Production API',  status: 'up'       },
+  { id: 'pay',    label: 'Payments API',    status: 'up'       },
+  { id: 'user',   label: 'User Service',    status: 'up'       },
+  { id: 'notif',  label: 'Notifications',   status: 'degraded' },
+  { id: 'analyt', label: 'Analytics API',   status: 'down'     },
 ]
 
-// ─── Status dot colours ───────────────────────────────────────────────────────
+// ─── Status Colors (OpenStatus / Vercel style) ───────────────────────────────
 
 const DOT_COLOR: Record<StatusKind, string> = {
-  up:       '#10B981',
-  degraded: '#F59E0B',
-  down:     '#EF4444',
+  up:       '#10B981', // Crisp Emerald
+  degraded: '#F59E0B', // Crisp Amber
+  down:     '#EF4444', // Crisp Red
 }
 
 const DOT_GLOW: Record<StatusKind, string> = {
-  up:       '0 0 6px rgba(16,185,129,0.65)',
-  degraded: '0 0 6px rgba(245,158,11,0.65)',
-  down:     '0 0 6px rgba(239,68,68,0.65)',
+  up:       '0 0 6px rgba(16, 185, 129, 0.55)',
+  degraded: '0 0 6px rgba(245, 158, 11, 0.55)',
+  down:     '0 0 6px rgba(239, 68, 68, 0.55)',
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Sidebar Component ────────────────────────────────────────────────────────
 
 export default function Sidebar({ currentTab = 'dashboard', onTabChange }: SidebarProps) {
   const [active, setActive] = useState(currentTab)
@@ -104,8 +104,10 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
         fontFamily:      "'Inter', sans-serif",
       }}
     >
+      {/* ── Workspace Switcher ─────────────────────────────────────────────── */}
       <WorkspaceSwitcher />
 
+      {/* ── Main Nav ──────────────────────────────────────────────────────── */}
       <SectionLabel label="Workspace" />
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {NAV_ITEMS.map((item) => (
@@ -118,6 +120,7 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
         ))}
       </nav>
 
+      {/* ── Status Pages ──────────────────────────────────────────────────── */}
       <SectionLabel label="Status Pages" withAdd />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {STATUS_PAGES.map((p) => (
@@ -125,6 +128,7 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
         ))}
       </div>
 
+      {/* ── Monitors ──────────────────────────────────────────────────────── */}
       <SectionLabel label="Monitors" withAdd />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {MONITORS.map((m) => (
@@ -132,12 +136,13 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
         ))}
       </div>
 
+      {/* ── Bottom spacer ─────────────────────────────────────────────────── */}
       <div style={{ flex: 1, minHeight: 24 }} />
     </aside>
   )
 }
 
-// ─── WorkspaceSwitcher ────────────────────────────────────────────────────────
+// ─── Workspace Switcher ───────────────────────────────────────────────────────
 
 function WorkspaceSwitcher() {
   const [hovered, setHovered] = useState(false)
@@ -157,22 +162,23 @@ function WorkspaceSwitcher() {
         borderBottom:    '1px solid #1F1F1F',
         marginBottom:    8,
         cursor:          'pointer',
-        transition:      'background 150ms ease',
+        transition:      'all 150ms ease',
         borderRadius:    0,
       }}
     >
+      {/* Dark minimalist logo mark */}
       <span
         style={{
-          width:          28,
-          height:         28,
-          borderRadius:   7,
-          backgroundColor:'#1A1A1A',
-          border:         '1px solid #2A2A2A',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-          flexShrink:     0,
-          color:          '#FFFFFF',
+          width:           28,
+          height:          28,
+          borderRadius:    7,
+          backgroundColor: '#1A1A1A',
+          border:          '1px solid #2A2A2A',
+          display:         'flex',
+          alignItems:      'center',
+          justifyContent:  'center',
+          flexShrink:      0,
+          color:           '#FFFFFF',
         }}
       >
         <Zap size={13} />
@@ -191,12 +197,12 @@ function WorkspaceSwitcher() {
         API Monitor
       </span>
 
-      <ChevronDown size={14} color="#4A4A4A" strokeWidth={2} />
+      <ChevronDown size={14} color="#525252" strokeWidth={2} />
     </button>
   )
 }
 
-// ─── SectionLabel ─────────────────────────────────────────────────────────────
+// ─── Section Label ────────────────────────────────────────────────────────────
 
 function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) {
   const [addHovered, setAddHovered] = useState(false)
@@ -216,7 +222,7 @@ function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) 
           fontWeight:    500,
           letterSpacing: '0.07em',
           textTransform: 'uppercase',
-          color:         '#4A4A4A',
+          color:         '#525252',
         }}
       >
         {label}
@@ -234,10 +240,10 @@ function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) 
             height:          20,
             borderRadius:    5,
             border:          'none',
-            backgroundColor: addHovered ? '#2A2A2A' : 'transparent',
-            color:           addHovered ? '#FFFFFF' : '#4A4A4A',
+            backgroundColor: addHovered ? '#262626' : 'transparent',
+            color:           addHovered ? '#FFFFFF' : '#525252',
             cursor:          'pointer',
-            transition:      'background 150ms ease, color 150ms ease',
+            transition:      'all 150ms ease',
             padding:         0,
           }}
         >
@@ -248,7 +254,7 @@ function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) 
   )
 }
 
-// ─── NavLink ──────────────────────────────────────────────────────────────────
+// ─── Nav Link with Signature White Pill ───────────────────────────────────────
 
 function NavLink({
   item,
@@ -284,7 +290,7 @@ function NavLink({
         fontSize:        13.5,
         letterSpacing:   '-0.005em',
         textAlign:       'left',
-        transition:      'background 150ms ease, color 150ms ease',
+        transition:      'all 150ms ease',
         fontFamily:      'inherit',
       }}
     >
@@ -319,12 +325,11 @@ function SubItem({ label, status }: { label: string; status: StatusKind }) {
         fontSize:        13,
         fontWeight:      400,
         textAlign:       'left',
-        transition:      'background 150ms ease, color 150ms ease',
+        transition:      'all 150ms ease',
         letterSpacing:   '-0.005em',
         fontFamily:      'inherit',
       }}
     >
-      {/* Status dot */}
       <span
         style={{
           display:         'inline-block',
