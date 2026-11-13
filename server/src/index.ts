@@ -1,20 +1,34 @@
 import express from 'express';
-import authRoute from './route/authRoute.js'
-import projectRoute from './route/projectRoute.js'
-
-import cors from 'cors'
+import cors from 'cors';
+import authRoute from './route/authRoute.js';
+import projectRoute from './route/projectRoute.js';
 
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }))
-// Routes
-app.use('/api/auth', authRoute);
-app.use('/api/projects', projectRoute)
 
-const PORT = process.env.PORT || 5000;
+// Allow client origin or fallback to allow all during development
+const clientUrl = process.env.CLIENT_URL;
+app.use(cors({
+  origin: clientUrl ? [clientUrl.replace(/\/$/, ''), 'http://localhost:5173'] : true,
+  credentials: true
+}));
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Root health check for Vercel
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'API Monitor Server is running' });
 });
 
+// Routes
+app.use('/api/auth', authRoute);
+app.use('/api/projects', projectRoute);
+
+// When running locally, start the HTTP server. On Vercel, serverless handles the port.
+const PORT = process.env.PORT || 5000;
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
