@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-    userId?: string;
+    userId?: number;
 }
 
 export const authenticate = (
@@ -13,42 +13,55 @@ export const authenticate = (
     try {
         const authHeader = req.headers.authorization;
 
-        if (typeof authHeader !== "string" || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                message: "Unauthorized"
+        if (!authHeader?.startsWith("Bearer ")) {
+            res.status(401).json({
+                success: false,
+                message: "Unauthorized",
             });
+            return;
         }
 
         const token = authHeader.split(" ")[1];
 
         if (!token) {
-            return res.status(401).json({
-                message: "Unauthorized"
+            res.status(401).json({
+                success: false,
+                message: "Token missing",
             });
+            return;
         }
 
         const secret = process.env.JWT_SECRET;
 
         if (!secret) {
-            return res.status(500).json({
-                message: "Server misconfigured"
+            res.status(500).json({
+                success: false,
+                message: "Server misconfigured",
             });
+            return;
         }
 
-        const decoded = jwt.verify(token, secret) as JwtPayload & { userId?: string };
+        const decoded = jwt.verify(token, secret);
 
-        if (typeof decoded === "string" || !decoded.userId) {
-            return res.status(401).json({
-                message: "Invalid token"
+        if (
+            typeof decoded === "string" ||
+            typeof decoded.userId !== "number"
+        ) {
+            res.status(401).json({
+                success: false,
+                message: "Invalid token",
             });
+            return;
         }
 
         req.userId = decoded.userId;
 
         next();
+
     } catch {
-        return res.status(401).json({
-            message: "Invalid or expired token"
+        res.status(401).json({
+            success: false,
+            message: "Invalid or expired token",
         });
     }
 };

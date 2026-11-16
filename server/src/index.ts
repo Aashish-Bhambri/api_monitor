@@ -1,7 +1,9 @@
+import "dotenv/config";
 import express from 'express';
 import cors from 'cors';
 import authRoute from './route/authRoute.js';
 import projectRoute from './route/projectRoute.js';
+import monitorRoute from './route/monitorRoute.js';
 
 const app = express();
 
@@ -22,6 +24,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/auth', authRoute);
 app.use('/api/projects', projectRoute);
+app.use('/api/monitors', monitorRoute);
 
 // When running locally, start the HTTP server. On Vercel, serverless handles the port.
 const PORT = process.env.PORT || 5000;

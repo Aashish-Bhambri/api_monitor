@@ -7,7 +7,9 @@ import {
   TrendingDown,
   ChevronRight,
   ShieldCheck,
+  Plus,
 } from 'lucide-react'
+import OnboardingModal from '../components/OnboardingModal'
 
 // ─── Mock Fleet Data ─────────────────────────────────────────────────────────
 
@@ -87,6 +89,19 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('24h')
   const [region, setRegion] = useState('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  
+  // Strictly a one-time popup after user signup
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    const isPending = localStorage.getItem('pendingOnboarding') === 'true';
+    const hasCompleted = localStorage.getItem('hasCompletedOnboarding') === 'true';
+    return isPending && !hasCompleted;
+  });
+
+  const handleDismissOnboarding = () => {
+    localStorage.removeItem('pendingOnboarding');
+    localStorage.setItem('hasCompletedOnboarding', 'true');
+    setShowOnboarding(false);
+  };
 
   const handleRefresh = () => {
     setIsRefreshing(true)
@@ -116,6 +131,17 @@ export default function Dashboard() {
 
         {/* Filter Controls */}
         <div className="flex items-center gap-2">
+          {/* New Project Button (Regular dashboard action, NOT the onboarding wizard) */}
+          <button
+            onClick={() => {
+              // Regular project creation handler
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1F1F1F] hover:bg-[#2A2A2A] text-white text-xs font-semibold border border-[#2D2D2D] transition-all cursor-pointer"
+          >
+            <Plus size={13} />
+            New Project
+          </button>
+
           {/* Region selector */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141414] border border-[#222222] text-xs font-medium text-neutral-300">
             <Globe size={13} className="text-neutral-400" />
@@ -417,6 +443,16 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
+
+      {/* ── Onboarding / Project Setup Modal (One-time post-signup popup) ── */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={handleDismissOnboarding}
+        onComplete={(data) => {
+          console.log('Project created:', data);
+          handleDismissOnboarding();
+        }}
+      />
     </div>
   )
 }

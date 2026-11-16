@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import axios, { isAxiosError } from 'axios';
+import { useNavigate } from 'react-router';
 
 interface SignupProps {
   onSwitchToLogin?: () => void;
 }
 
 const Signup = ({ onSwitchToLogin }: SignupProps) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,10 +39,23 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
 
     try {
       await axios.post('/api/auth/signup', { email, password });
-      setSuccess('Account created successfully! Switching to sign in...');
+      
+      // Auto login after signup
+      try {
+        const loginRes = await axios.post('/api/auth/login', { email, password });
+        if (loginRes.data?.token) {
+          localStorage.setItem('token', loginRes.data.token);
+        }
+      } catch {
+        // Fallback
+      }
+
+      setSuccess('Account created! Setting up your first project...');
+      localStorage.setItem('pendingOnboarding', 'true');
+      localStorage.removeItem('hasCompletedOnboarding');
       setTimeout(() => {
-        if (onSwitchToLogin) onSwitchToLogin();
-      }, 1500);
+        navigate('/dashboard');
+      }, 800);
     } catch (err: unknown) {
       let msg = 'Signup failed. Please try again.';
       if (isAxiosError(err)) {
