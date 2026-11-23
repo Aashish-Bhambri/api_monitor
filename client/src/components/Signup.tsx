@@ -168,7 +168,7 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-2 w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition-all shadow-[0_4px_16px_rgba(99,102,241,0.35)] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+          className="mt-2 w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-gray-950 hover:bg-black active:scale-[0.99] transition-all shadow-[0_4px_16px_rgba(99,102,241,0.35)] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
         >
           {isLoading ? (
             <>
@@ -239,7 +239,7 @@ const Signup = ({ onSwitchToLogin }: SignupProps) => {
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer transition-colors underline-offset-2 hover:underline"
+          className="text-gray-950 hover:text-black font-semibold cursor-pointer transition-colors underline-offset-2 hover:underline"
         >
           Sign in
         </button>

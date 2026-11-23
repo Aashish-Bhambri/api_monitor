@@ -10,17 +10,13 @@ const SignupPage = () => {
   };
 
   return (
-<div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#000000] text-neutral-100 font-sans">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#000000] text-neutral-100 font-sans">
 
       {/* =========================================================
           LEFT SIDE: OBSIDIAN NEON HERO (THE PERFECT MIDDLEGROUND)
       ========================================================= */}
       <div className="w-full lg:w-1/2 min-h-[550px] lg:min-h-screen flex flex-col justify-between p-8 sm:p-12 lg:p-16 relative isolate overflow-hidden bg-[#0A0A0A] border-b lg:border-b-0 lg:border-r border-[#1F1F1F]">
 
-        {/* Ambient Neon Purple & Cyan Glows (Controlled, not washed out) */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/15 rounded-full blur-[130px] pointer-events-none z-0" />
-        <div className="absolute bottom-16 left-1/4 w-80 h-80 bg-purple-600/12 rounded-full blur-[120px] pointer-events-none z-0" />
-        <div className="absolute top-1/2 -right-20 w-72 h-72 bg-cyan-600/10 rounded-full blur-[110px] pointer-events-none z-0" />
 
         {/* Subtle Tech Grid */}
         <div className="absolute inset-0 pointer-events-none z-0 opacity-25">
@@ -163,7 +159,7 @@ const SignupPage = () => {
         ========================================================= */}
         <div>
           <div className="flex items-center gap-3 relative z-10">
-            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
+            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 ">
               <Zap className="w-4 h-4 text-indigo-400" />
             </div>
             <span className="text-lg font-bold tracking-tight text-white">
@@ -174,13 +170,8 @@ const SignupPage = () => {
           {/* =========================================================
               HERO CONTENT (Clean contrast + Vibrant accent)
           ========================================================= */}
-          <div className="my-auto py-16 relative z-10 max-w-lg">
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded-full bg-indigo-500/10 border border-indigo-500/25">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-medium text-indigo-300">
-                API Observability Platform
-              </span>
-            </div>
+          <div className="my-auto py-16 relative z-10 max-w-lg mt-10">
+
 
             <h1 className="text-4xl sm:text-5xl lg:text-[50px] font-extrabold tracking-tight text-white leading-[1.15]">
               Monitor. Analyze.

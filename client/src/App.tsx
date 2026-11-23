@@ -5,7 +5,7 @@ import SignupPage from './pages/SignupPage'
 import Dashboard from './pages/Dashboard'
 import MainOutlet from './components/MainOutlet'
 import ProtectedRoute from './components/ProtectedRoute'
-
+import ApiTestPage from './pages/ApiTestPage'
 
 const App = () => {
   return (
@@ -14,6 +14,7 @@ const App = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/test" element={<ApiTestPage />} />
 
       {/* Protected routes — redirect to /login if no token */}
       <Route element={<ProtectedRoute />}>
