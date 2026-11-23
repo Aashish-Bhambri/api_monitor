@@ -3,6 +3,7 @@ import type { Response } from "express";
 import { prisma } from "../db/db.js";
 import type { AuthRequest } from "../middleware/authMiddleware.js";
 import { executeMonitor } from "../services/monitorservice.js";
+import { removeMonitorSchedule, scheduleMonitor } from "../queues/monitorScheduler.js";
 
 // CREATE MONITOR
 export const createMonitor = async (
@@ -66,7 +67,7 @@ export const createMonitor = async (
                 status: MonitorStatus.PENDING,
             },
         });
-
+        await scheduleMonitor(monitor.id, resolvedInterval);
         res.status(201).json({
             success: true,
             message: "Monitor created successfully",
@@ -108,7 +109,7 @@ export const getMonitors = async (
             },
             include: {
                 results: {
-                    take: 1,
+                    take: 30,
                     orderBy: {
                         checkedAt: "desc",
                     },
@@ -351,7 +352,7 @@ export const deleteMonitor = async (
             });
             return;
         }
-
+        await removeMonitorSchedule(id);
         await prisma.monitor.delete({
             where: { id },
         });

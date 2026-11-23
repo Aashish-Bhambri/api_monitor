@@ -1,10 +1,7 @@
 
 import { monitorQueue } from "./monitorQueue.js";
 
-export const scheduleMonitor = async (
-    monitorId: string,
-    interval: number
-) => {
+export const scheduleMonitor = async (monitorId: string, interval: number) => {
     if (!Number.isInteger(interval) || interval < 1) {
         throw new Error("Monitor interval must be a positive number");
     }

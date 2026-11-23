@@ -1,5 +1,6 @@
-import type { Monitor } from "@prisma/client";
+import { MonitorStatus, type Monitor, type Prisma } from "@prisma/client";
 import axios from "axios";
+import { prisma } from "../db/db.js";
 
 export interface ExecutionResult {
     statusCode: number | null;
@@ -35,4 +36,52 @@ export const executeMonitor = async (monitor: Monitor): Promise<ExecutionResult>
             error: error.message || "Request failed",
         };
     }
+};
+
+
+export const runMonitorCheck = async (monitorId: string) => {
+    const monitor = await prisma.monitor.findUnique({
+        where: {
+            id: monitorId,
+        },
+    });
+
+    if (!monitor) {
+        throw new Error(`Monitor not found: ${monitorId}`);
+    }
+
+    const result = await executeMonitor(monitor);
+
+    await prisma.$transaction([
+        prisma.monitorResult.create({
+            data: {
+                monitorId: monitor.id,
+                responseTime: result.responseTime,
+                statusCode: result.statusCode,
+                success: result.success,
+            },
+        }),
+
+        prisma.monitorLog.create({
+            data: {
+                monitorId: monitor.id,
+                requestDetails: {
+                    url: monitor.url,
+                    method: monitor.method,
+                    timeout: 10000,
+                } as Prisma.InputJsonValue,
+                error: result.error ?? null,
+                executionResult: JSON.stringify(result),
+            },
+        }),
+
+        prisma.monitor.update({
+            where: { id: monitor.id },
+            data: {
+                status: result.success ? MonitorStatus.UP : MonitorStatus.DOWN,
+            },
+        }),
+    ]);
+
+    return result;
 };

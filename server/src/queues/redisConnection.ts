@@ -1,4 +1,5 @@
 
+import "dotenv/config";
 import {Redis} from "ioredis";
 
 const redisUrl = new URL(

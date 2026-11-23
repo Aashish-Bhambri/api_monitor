@@ -4,6 +4,7 @@ import cors from 'cors';
 import authRoute from './route/authRoute.js';
 import projectRoute from './route/projectRoute.js';
 import monitorRoute from './route/monitorRoute.js';
+import "./worker/monitorWorker.js";
 
 const app = express();
 

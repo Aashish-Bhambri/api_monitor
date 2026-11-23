@@ -6,6 +6,7 @@ import {
 import type {
     MonitorJobData,
 } from "../queues/monitorQueue.js";
+import { runMonitorCheck } from "../services/monitorservice.js";
 
 const monitorWorker = new Worker<MonitorJobData>(
     "monitor-checks",
@@ -15,12 +16,13 @@ const monitorWorker = new Worker<MonitorJobData>(
 
         console.log("Executing monitor:", monitorId);
 
-        // Next, call your monitor execution service here.
-        // await runMonitorCheck(monitorId);
+        const result = await runMonitorCheck(monitorId);
 
         return {
-            success: true,
+            success: result.success,
             monitorId,
+            statusCode: result.statusCode,
+            responseTime: result.responseTime,
         };
     },
 
