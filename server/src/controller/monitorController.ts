@@ -218,6 +218,8 @@ export const updateMonitor = async (
     res: Response
 ): Promise<void> => {
     try {
+
+        
         if (typeof req.userId !== "number") {
             res.status(401).json({
                 success: false,
@@ -247,7 +249,6 @@ export const updateMonitor = async (
                 },
             },
         });
-
         if (!existingMonitor) {
             res.status(404).json({
                 success: false,
@@ -295,6 +296,12 @@ export const updateMonitor = async (
                 ...(resolvedStatus !== undefined && { status: resolvedStatus }),
             },
         });
+        
+         if (monitor.status === MonitorStatus.PAUSED) {
+            await removeMonitorSchedule(monitor.id);
+        } else if (interval !== undefined || status !== undefined) {
+            await scheduleMonitor(monitor.id, monitor.interval);
+        }
 
         res.status(200).json({
             success: true,
@@ -445,6 +452,126 @@ export const testMonitor = async (
 
     } catch (error) {
         console.error("Test monitor error:", error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : "Server error",
+        });
+    }
+};
+
+
+export const pauseMonitor = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (typeof req.userId !== "number") {
+            res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+            return;
+        }
+        const { id } = req.params;
+        if (typeof id !== "string") {
+            res.status(400).json({
+                success: false,
+                message: "Invalid monitor ID",
+            });
+            return;
+        }
+
+        const monitor = await prisma.monitor.findFirst({
+            where: {
+                id,
+                project: {
+                    userId: req.userId,
+                },
+            },
+        });
+
+        if (!monitor) {
+            res.status(404).json({
+                success: false,
+                message: "Monitor not found",
+            });
+            return;
+        }
+
+        await removeMonitorSchedule(id);
+
+        const updated = await prisma.monitor.update({
+            where: { id },
+            data: { status: MonitorStatus.PAUSED },
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Monitor paused successfully",
+            monitor: updated,
+        });
+    } catch (error) {
+        console.error("Pause monitor error:", error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : "Server error",
+        });
+    }
+};
+
+export const resumeMonitor = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        if (typeof req.userId !== "number") {
+            res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+            return;
+        }
+        const { id } = req.params;
+        if (typeof id !== "string") {
+            res.status(400).json({
+                success: false,
+                message: "Invalid monitor ID",
+            });
+            return;
+        }
+
+        const monitor = await prisma.monitor.findFirst({
+            where: {
+                id,
+                project: {
+                    userId: req.userId,
+                },
+            },
+        });
+
+        if (!monitor) {
+            res.status(404).json({
+                success: false,
+                message: "Monitor not found",
+            });
+            return;
+        }
+
+        const interval = typeof req.body?.interval === "number" && req.body.interval > 0 
+            ? req.body.interval 
+            : monitor.interval;
+
+        await scheduleMonitor(id, interval);
+
+        const updated = await prisma.monitor.update({
+            where: { id },
+            data: { 
+                status: MonitorStatus.PENDING,
+                interval,
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Monitor resumed successfully",
+            monitor: updated,
+        });
+    } catch (error) {
+        console.error("Resume monitor error:", error);
         res.status(500).json({
             success: false,
             message: error instanceof Error ? error.message : "Server error",

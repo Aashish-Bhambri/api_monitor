@@ -50,6 +50,16 @@ export const runMonitorCheck = async (monitorId: string) => {
         throw new Error(`Monitor not found: ${monitorId}`);
     }
 
+    if (monitor.status === MonitorStatus.PAUSED) {
+        console.log(`Skipping check: monitor ${monitorId} is currently PAUSED`);
+        return {
+            statusCode: null,
+            responseTime: 0,
+            success: false,
+            error: "Monitor is paused",
+        };
+    }
+
     const result = await executeMonitor(monitor);
 
     await prisma.$transaction([

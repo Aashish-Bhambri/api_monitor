@@ -1,6 +1,6 @@
 
 import { Router } from "express";
-import { createMonitor, deleteMonitor, getMonitorById, getMonitors, testMonitor, updateMonitor } from "../controller/monitorController.js";
+import { createMonitor, deleteMonitor, getMonitorById, getMonitors, pauseMonitor, resumeMonitor, testMonitor, updateMonitor } from "../controller/monitorController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 
 
@@ -15,5 +15,7 @@ router.get("/:id", getMonitorById);
 router.patch("/:id", updateMonitor);
 router.delete("/:id", deleteMonitor);
 router.post("/:id/test", testMonitor);
+router.patch('/:id/resume',resumeMonitor);
+router.patch('/:id/pause',pauseMonitor);
 
 export default router;
