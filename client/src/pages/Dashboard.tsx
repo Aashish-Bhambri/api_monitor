@@ -1,19 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import {
-  Activity,
   Plus,
   RefreshCw,
   Folder,
   Globe,
-  Clock,
-  Zap,
   Play,
   Pause,
-  ArrowUpRight,
   ExternalLink,
-  Trash2,
-  Sparkles,
 } from 'lucide-react';
 import {
   monitoringApi,
@@ -233,50 +227,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleSeedDemoFleet = async () => {
-    const projId = selectedProjectId || projects[0]?.id;
-    if (!projId) {
-      alert('Please create a project first before seeding demo monitors');
-      return;
-    }
-    setIsActionLoading(true);
-    try {
-      // 1. GitHub API (Operational • 60s)
-      const m1 = await monitoringApi.createMonitor({
-        projectId: projId,
-        url: 'https://api.github.com',
-        method: 'GET',
-        interval: 60,
-      });
-      // 2. HttpBin 500 (Down / Incident • 60s)
-      const m2 = await monitoringApi.createMonitor({
-        projectId: projId,
-        url: 'https://httpbin.org/status/500',
-        method: 'GET',
-        interval: 60,
-      });
-      // 3. HttpBin Delay (Paused • 120s)
-      const m3 = await monitoringApi.createMonitor({
-        projectId: projId,
-        url: 'https://httpbin.org/get',
-        method: 'GET',
-        interval: 120,
-      });
-
-      // Execute tests so telemetry jumps live
-      await monitoringApi.testMonitor(m1.id).catch(() => {});
-      await monitoringApi.testMonitor(m2.id).catch(() => {});
-      await monitoringApi.pauseMonitor(m3.id).catch(() => {});
-
-      await loadMonitors(false);
-      handleSelectMonitor(m1.id);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to seed demo fleet');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName.trim()) return;
@@ -490,9 +440,11 @@ export default function Dashboard() {
 
         {/* Action Controls on Top Right */}
         <div className="flex items-center gap-2.5 self-start md:self-center">
-          
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141414] border border-[#222222] text-xs text-neutral-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Live ({lastSynced})</span>
+          </div>
 
-          
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className="p-2 rounded-lg bg-[#141414] hover:bg-[#1C1C1C] border border-[#222222] text-neutral-400 hover:text-white transition-colors cursor-pointer"
