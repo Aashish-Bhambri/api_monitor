@@ -67,7 +67,9 @@ export const createMonitor = async (
                 status: MonitorStatus.PENDING,
             },
         });
-        await scheduleMonitor(monitor.id, resolvedInterval);
+        scheduleMonitor(monitor.id, resolvedInterval).catch((err) => {
+            console.warn("Could not schedule in BullMQ:", err);
+        });
         res.status(201).json({
             success: true,
             message: "Monitor created successfully",
@@ -309,10 +311,14 @@ export const updateMonitor = async (
             },
         });
         
-         if (monitor.status === MonitorStatus.PAUSED) {
-            await removeMonitorSchedule(monitor.id);
+        if (monitor.status === MonitorStatus.PAUSED) {
+            removeMonitorSchedule(monitor.id).catch((err) => {
+                console.warn("Could not remove schedule in BullMQ:", err);
+            });
         } else if (interval !== undefined || status !== undefined) {
-            await scheduleMonitor(monitor.id, monitor.interval);
+            scheduleMonitor(monitor.id, monitor.interval).catch((err) => {
+                console.warn("Could not schedule in BullMQ:", err);
+            });
         }
 
         res.status(200).json({
@@ -371,9 +377,15 @@ export const deleteMonitor = async (
             });
             return;
         }
-        await removeMonitorSchedule(id);
+
+        // Delete from database first
         await prisma.monitor.delete({
             where: { id },
+        });
+
+        // Clean up scheduler in background
+        removeMonitorSchedule(id).catch((err) => {
+            console.warn("Could not remove BullMQ schedule on delete:", err);
         });
 
         res.status(200).json({
@@ -507,16 +519,15 @@ export const pauseMonitor = async (req: AuthRequest, res: Response): Promise<voi
             return;
         }
 
-        // Try to remove from Redis scheduler; if Redis is unreachable or quota exceeded, update DB status anyway
-        try {
-            await removeMonitorSchedule(id);
-        } catch (queueErr) {
-            console.warn("Could not remove BullMQ schedule from Redis (quota or connection issue):", queueErr);
-        }
-
+        // Update database status immediately
         const updated = await prisma.monitor.update({
             where: { id },
             data: { status: MonitorStatus.PAUSED },
+        });
+
+        // Clean up scheduler in background
+        removeMonitorSchedule(id).catch((queueErr) => {
+            console.warn("Could not remove BullMQ schedule from Redis on pause:", queueErr);
         });
 
         res.status(200).json({
@@ -572,18 +583,18 @@ export const resumeMonitor = async (req: AuthRequest, res: Response): Promise<vo
             ? req.body.interval 
             : monitor.interval;
 
-        try {
-            await scheduleMonitor(id, interval);
-        } catch (queueErr) {
-            console.warn("Could not schedule BullMQ in Redis (quota or connection issue):", queueErr);
-        }
-
+        // Update database status immediately
         const updated = await prisma.monitor.update({
             where: { id },
             data: { 
-                status: MonitorStatus.PENDING,
+                status: MonitorStatus.UP,
                 interval,
             },
+        });
+
+        // Schedule in background
+        scheduleMonitor(id, interval).catch((queueErr) => {
+            console.warn("Could not schedule BullMQ in Redis on resume:", queueErr);
         });
 
         res.status(200).json({
