@@ -6,34 +6,24 @@ export const scheduleMonitor = async (monitorId: string, interval: number) => {
         throw new Error("Monitor interval must be a positive number");
     }
 
-    await Promise.race([
-        monitorQueue.upsertJobScheduler(
-            `monitor-${monitorId}`,
-            {
-                every: interval * 1000,
+    await monitorQueue.upsertJobScheduler(
+        `monitor-${monitorId}`,
+        {
+            every: interval * 1000,
+        },
+        {
+            name: "check-monitor",
+            data: {
+                monitorId,
             },
-            {
-                name: "check-monitor",
-                data: {
-                    monitorId,
-                },
-            }
-        ),
-        new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Redis schedule operation timed out after 3500ms")), 3500)
-        )
-    ]);
+        }
+    );
 };
 
 export const removeMonitorSchedule = async (
     monitorId: string
 ) => {
-    await Promise.race([
-        monitorQueue.removeJobScheduler(
-            `monitor-${monitorId}`
-        ),
-        new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Redis remove schedule operation timed out after 3500ms")), 3500)
-        )
-    ]);
+    await monitorQueue.removeJobScheduler(
+        `monitor-${monitorId}`
+    );
 };
