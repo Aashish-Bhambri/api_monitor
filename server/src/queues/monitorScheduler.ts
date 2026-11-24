@@ -1,14 +1,22 @@
 
-import { monitorQueue } from "./monitorQueue.js";
+import { getMonitorQueue } from "./monitorQueue.js";
 
 export const scheduleMonitor = async (monitorId: string, interval: number) => {
+    // In Vercel serverless environment, background BullMQ queue is not running
+    if (process.env.VERCEL) {
+        return;
+    }
+
     if (!Number.isInteger(interval) || interval < 1) {
         throw new Error("Monitor interval must be a positive number");
     }
 
+    const queue = getMonitorQueue();
+    if (!queue) return;
+
     try {
         await Promise.race([
-            monitorQueue.upsertJobScheduler(
+            queue.upsertJobScheduler(
                 `monitor-${monitorId}`,
                 {
                     every: interval * 1000,
@@ -21,7 +29,7 @@ export const scheduleMonitor = async (monitorId: string, interval: number) => {
                 }
             ),
             new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Redis schedule operation timed out")), 1500)
+                setTimeout(() => reject(new Error("Redis schedule operation timed out")), 1000)
             )
         ]);
     } catch (err: any) {
@@ -32,13 +40,21 @@ export const scheduleMonitor = async (monitorId: string, interval: number) => {
 export const removeMonitorSchedule = async (
     monitorId: string
 ) => {
+    // In Vercel serverless environment, background BullMQ queue is not running
+    if (process.env.VERCEL) {
+        return;
+    }
+
+    const queue = getMonitorQueue();
+    if (!queue) return;
+
     try {
         await Promise.race([
-            monitorQueue.removeJobScheduler(
+            queue.removeJobScheduler(
                 `monitor-${monitorId}`
             ),
             new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Redis remove schedule operation timed out")), 1500)
+                setTimeout(() => reject(new Error("Redis remove schedule operation timed out")), 1000)
             )
         ]);
     } catch (err: any) {
