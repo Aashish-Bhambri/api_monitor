@@ -140,7 +140,7 @@ export const monitoringApi = {
     return res.data.monitor;
   },
   deleteMonitor: async (id: string): Promise<void> => {
-    await api.delete(`/monitors/${id}`);
+    await api.delete(`/monitors/${id}/delete`);
   },
   testMonitor: async (id: string): Promise<any> => {
     const res = await api.post(`/monitors/${id}/test`);

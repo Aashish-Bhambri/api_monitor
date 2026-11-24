@@ -32,6 +32,7 @@ router.get("/logs", getLogs);
 router.get("/:id", getMonitorById);
 router.patch("/:id", updateMonitor);
 router.delete("/:id", deleteMonitor);
+router.delete("/:id/delete", deleteMonitor);
 router.post("/:id/test", testMonitor);
 router.patch("/:id/resume", resumeMonitor);
 router.patch("/:id/pause", pauseMonitor);
