@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Clock, Zap, CheckCircle2, AlertCircle, Play, Pause, ExternalLink } from 'lucide-react';
+import { Activity, Clock, Zap, CheckCircle2, AlertCircle, Play, ExternalLink } from 'lucide-react';
 
 export interface MonitorResult {
   id?: string;
@@ -31,10 +31,8 @@ interface LatencyChartProps {
 export const LatencyChart: React.FC<LatencyChartProps> = ({
   monitor,
   onTestNow,
-  onPause,
-  onResume,
+  
   isTesting = false,
-  isActionLoading = false,
 }) => {
   const [hoveredPoint, setHoveredPoint] = useState<{
     x: number;
