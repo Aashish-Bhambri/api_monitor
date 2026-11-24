@@ -5,7 +5,7 @@ import {
   type ScriptableContext,
 } from "chart.js";
 import "chart.js/auto";
-import { Play, Pause, Zap, Clock, Activity, AlertCircle } from "lucide-react";
+import { Play, Pause, Zap, Clock, Activity, AlertCircle, Trash2 } from "lucide-react";
 import type { Monitor } from "../services/api";
 
 interface ChartProps {
@@ -14,6 +14,7 @@ interface ChartProps {
   onResume?: () => void;
   onChangeInterval?: (interval: number) => void;
   onTriggerHit?: () => void;
+  onDelete?: () => void;
   isTriggering?: boolean;
   isActionLoading?: boolean;
 }
@@ -24,6 +25,7 @@ export default function Chart({
   onResume,
   onChangeInterval,
   onTriggerHit,
+  onDelete,
   isTriggering = false,
   isActionLoading = false,
 }: ChartProps) {
@@ -264,40 +266,38 @@ export default function Chart({
               </button>
             )}
 
-            {/* Change Interval Selector */}
+            {/* Change Interval Selector: 60s or 120s recommended */}
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141414] border border-[#262626] text-xs">
-              <Clock size={12} className="text-neutral-400" />
+              <Clock size={12} className="text-purple-400" />
               <select
                 value={monitor.interval}
                 onChange={(e) => onChangeInterval?.(Number(e.target.value))}
                 disabled={isActionLoading}
                 className="bg-transparent text-white font-medium outline-none cursor-pointer text-xs"
-                title="Change interval between checks"
+                title="Change interval between checks (60s reduces Redis load by 83%)"
               >
-                <option value={10} className="bg-[#141414]">
-                  10s (Fast)
+                <option value={60} className="bg-[#141414] text-emerald-400 font-semibold">
+                  60s (Recommended • -83% Redis)
                 </option>
-                <option value={30} className="bg-[#141414]">
-                  30s
-                </option>
-                <option value={60} className="bg-[#141414]">
-                  60s (Default)
-                </option>
-                <option value={120} className="bg-[#141414]">
-                  2m
+                <option value={120} className="bg-[#141414] text-purple-300">
+                  120s (2m • Demo Fleet)
                 </option>
                 <option value={300} className="bg-[#141414]">
-                  5m
+                  300s (5m)
+                </option>
+                <option value={30} className="bg-[#141414] text-neutral-400">
+                  30s
                 </option>
               </select>
             </div>
 
-            {/* Trigger Hit Now Button */}
+            {/* Trigger Hit Now Button (Ideal for Presentations) */}
             <button
               type="button"
               onClick={onTriggerHit}
               disabled={isTriggering}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 font-semibold text-xs text-white shadow-[0_0_12px_rgba(147,51,234,0.35)] transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-semibold text-xs text-white shadow-[0_0_14px_rgba(147,51,234,0.45)] hover:shadow-[0_0_20px_rgba(147,51,234,0.6)] transition-all cursor-pointer disabled:opacity-50"
+              title="Execute an on-demand live ping for demo presentations without waiting for background interval"
             >
               <Zap
                 size={12}
@@ -305,6 +305,20 @@ export default function Chart({
               />
               <span>{isTriggering ? "Pinging API..." : "Trigger Hit Now"}</span>
             </button>
+
+            {/* Delete Monitor Option */}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={isActionLoading}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-900/40 border border-red-900/40 text-red-400 hover:text-red-300 font-semibold text-xs transition-all cursor-pointer disabled:opacity-50"
+                title="Delete this monitor and its telemetry data"
+              >
+                <Trash2 size={12} />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            )}
           </div>
         )}
       </header>

@@ -12,6 +12,8 @@ import {
   Pause,
   ArrowUpRight,
   ExternalLink,
+  Trash2,
+  Sparkles,
 } from 'lucide-react';
 import {
   monitoringApi,
@@ -205,6 +207,73 @@ export default function Dashboard() {
       alert(err.response?.data?.message || 'Manual test failed');
     } finally {
       setIsTriggering(false);
+    }
+  };
+
+  const handleDeleteMonitor = async () => {
+    if (!activeMonitor) return;
+    if (!confirm(`Are you sure you want to delete "${activeMonitor.url}"? This will delete all its telemetry history.`)) {
+      return;
+    }
+    setIsActionLoading(true);
+    try {
+      await monitoringApi.deleteMonitor(activeMonitor.id);
+      const remaining = monitors.filter((m) => m.id !== activeMonitor.id);
+      setMonitors(remaining);
+      if (remaining.length > 0) {
+        handleSelectMonitor(remaining[0].id);
+      } else {
+        setSelectedMonitorId('');
+      }
+      await loadMonitors(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete monitor');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleSeedDemoFleet = async () => {
+    const projId = selectedProjectId || projects[0]?.id;
+    if (!projId) {
+      alert('Please create a project first before seeding demo monitors');
+      return;
+    }
+    setIsActionLoading(true);
+    try {
+      // 1. GitHub API (Operational • 60s)
+      const m1 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://api.github.com',
+        method: 'GET',
+        interval: 60,
+      });
+      // 2. HttpBin 500 (Down / Incident • 60s)
+      const m2 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://httpbin.org/status/500',
+        method: 'GET',
+        interval: 60,
+      });
+      // 3. HttpBin Delay (Paused • 120s)
+      const m3 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://httpbin.org/get',
+        method: 'GET',
+        interval: 120,
+      });
+
+      // Execute tests so telemetry jumps live
+      await monitoringApi.testMonitor(m1.id).catch(() => {});
+      await monitoringApi.testMonitor(m2.id).catch(() => {});
+      await monitoringApi.pauseMonitor(m3.id).catch(() => {});
+
+      await loadMonitors(false);
+      handleSelectMonitor(m1.id);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to seed demo fleet');
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -414,6 +483,19 @@ export default function Dashboard() {
                   {activeMonitor.status}
                 </span>
               )}
+
+              {/* Quick Delete Monitor Button in Title Bar */}
+              {activeMonitor && (
+                <button
+                  type="button"
+                  onClick={handleDeleteMonitor}
+                  disabled={isActionLoading}
+                  className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-red-950/20 transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                  title="Delete this monitor and its telemetry"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
             </h1>
             {activeProject?.description && (
               <p className="text-xs text-neutral-400 mt-0.5">{activeProject.description}</p>
@@ -423,6 +505,31 @@ export default function Dashboard() {
 
         {/* Action Controls on Top Right */}
         <div className="flex items-center gap-2.5 self-start md:self-center">
+          {/* Fast Trigger Hit Button in Header for Presentations */}
+          {activeMonitor && (
+            <button
+              onClick={handleTriggerHit}
+              disabled={isTriggering}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-[0_0_14px_rgba(147,51,234,0.45)] hover:shadow-[0_0_20px_rgba(147,51,234,0.6)] transition-all cursor-pointer disabled:opacity-50"
+              title="Trigger instant hit now (jump telemetry live during presentation)"
+            >
+              <Zap size={13} className={isTriggering ? 'animate-spin text-purple-200' : 'fill-white'} />
+              <span className="hidden sm:inline">{isTriggering ? 'Pinging API...' : 'Trigger Hit'}</span>
+            </button>
+          )}
+
+          {/* Seed Fleet (If fewer than 4 monitors) */}
+          {monitors.length < 4 && (
+            <button
+              onClick={handleSeedDemoFleet}
+              disabled={isActionLoading}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222222] text-neutral-300 hover:text-purple-300 text-xs font-semibold border border-[#333333] transition-all cursor-pointer disabled:opacity-50"
+              title="Add 2-4 recommended demo endpoints (Operational, Down, Paused) to fleet"
+            >
+              <Sparkles size={12} className="text-purple-400" />
+              <span className="hidden lg:inline">Seed Fleet</span>
+            </button>
+          )}
           {/* Live Polling Indicator */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141414] border border-[#222222] text-xs text-neutral-300"
@@ -634,6 +741,7 @@ export default function Dashboard() {
         onResume={handleResume}
         onChangeInterval={handleChangeInterval}
         onTriggerHit={handleTriggerHit}
+        onDelete={handleDeleteMonitor}
         isTriggering={isTriggering}
         isActionLoading={isActionLoading}
       />
@@ -769,11 +877,10 @@ export default function Dashboard() {
                     onChange={(e) => setNewInterval(Number(e.target.value))}
                     className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-[#262626] text-xs text-white focus:outline-none cursor-pointer"
                   >
-                    <option value={10}>10s (Fast Test)</option>
+                    <option value={60}>60s (Recommended • -83% Redis load)</option>
+                    <option value={120}>120s (2m Demo Fleet)</option>
+                    <option value={300}>300s (5m)</option>
                     <option value={30}>30s</option>
-                    <option value={60}>60s (Default)</option>
-                    <option value={120}>2m</option>
-                    <option value={300}>5m</option>
                   </select>
                 </div>
               </div>

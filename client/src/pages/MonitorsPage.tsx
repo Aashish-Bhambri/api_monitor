@@ -12,6 +12,7 @@ import {
   Trash2,
   Folder,
   Globe,
+  Sparkles,
 } from 'lucide-react';
 import {
   monitoringApi,
@@ -83,7 +84,7 @@ export default function MonitorsPage() {
   const [targetProjectId, setTargetProjectId] = useState('');
   const [newUrl, setNewUrl] = useState('');
   const [newMethod, setNewMethod] = useState<'GET' | 'POST' | 'PUT' | 'DELETE'>('GET');
-  const [newInterval, setNewInterval] = useState(30);
+  const [newInterval, setNewInterval] = useState(60);
 
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -279,6 +280,45 @@ export default function MonitorsPage() {
     }
   };
 
+  const handleSeedDemoFleet = async () => {
+    const projId = selectedProjectId || projects[0]?.id;
+    if (!projId) {
+      alert('Please select or create a project first before seeding demo fleet');
+      return;
+    }
+    setActionLoadingId('seeding');
+    try {
+      const m1 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://api.github.com',
+        method: 'GET',
+        interval: 60,
+      });
+      const m2 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://httpbin.org/status/500',
+        method: 'GET',
+        interval: 60,
+      });
+      const m3 = await monitoringApi.createMonitor({
+        projectId: projId,
+        url: 'https://httpbin.org/get',
+        method: 'GET',
+        interval: 120,
+      });
+
+      await monitoringApi.testMonitor(m1.id).catch(() => {});
+      await monitoringApi.testMonitor(m2.id).catch(() => {});
+      await monitoringApi.pauseMonitor(m3.id).catch(() => {});
+
+      await fetchData(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to seed demo fleet');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const handleCreateMonitor = async (e: React.FormEvent) => {
     e.preventDefault();
     const projId = targetProjectId || selectedProjectId || projects[0]?.id;
@@ -373,6 +413,19 @@ export default function MonitorsPage() {
           >
             <RefreshCw size={13} className={isLoading ? 'animate-spin text-purple-400' : ''} />
           </button>
+
+          {/* Seed Demo Fleet Button (Visible when fleet < 4) */}
+          {monitors.length < 4 && (
+            <button
+              onClick={handleSeedDemoFleet}
+              disabled={actionLoadingId !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222222] text-neutral-300 hover:text-purple-300 text-xs font-semibold border border-[#333333] transition-all cursor-pointer disabled:opacity-50"
+              title="Add 2-4 recommended demo endpoints (Operational, Down, Paused) to fleet"
+            >
+              <Sparkles size={13} className="text-purple-400" />
+              <span className="hidden sm:inline">Seed Demo Fleet</span>
+            </button>
+          )}
 
           {/* Add Monitor Button */}
           <button
@@ -805,11 +858,10 @@ export default function MonitorsPage() {
                     onChange={(e) => setNewInterval(Number(e.target.value))}
                     className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-[#262626] text-xs text-white focus:outline-none cursor-pointer"
                   >
-                    <option value={10}>10s (Fast Test)</option>
-                    <option value={30}>30s (Default)</option>
-                    <option value={60}>60s</option>
-                    <option value={120}>2m</option>
-                    <option value={300}>5m</option>
+                    <option value={60}>60s (Recommended • -83% Redis load)</option>
+                    <option value={120}>120s (2m Demo Fleet)</option>
+                    <option value={300}>300s (5m)</option>
+                    <option value={30}>30s</option>
                   </select>
                 </div>
               </div>
