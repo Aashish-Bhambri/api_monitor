@@ -108,8 +108,14 @@ export const getMonitors = async (
                 ...(projectId && { projectId }),
             },
             include: {
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 results: {
-                    take: 30,
+                    take: 100,
                     orderBy: {
                         checkedAt: "desc",
                     },
@@ -168,11 +174,17 @@ export const getMonitorById = async (
                 },
             },
             include: {
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 results: {
                     orderBy: {
                         checkedAt: "desc",
                     },
-                    take: 20,
+                    take: 100,
                 },
                 incidents: {
                     orderBy: {
@@ -495,7 +507,12 @@ export const pauseMonitor = async (req: AuthRequest, res: Response): Promise<voi
             return;
         }
 
-        await removeMonitorSchedule(id);
+        // Try to remove from Redis scheduler; if Redis is unreachable or quota exceeded, update DB status anyway
+        try {
+            await removeMonitorSchedule(id);
+        } catch (queueErr) {
+            console.warn("Could not remove BullMQ schedule from Redis (quota or connection issue):", queueErr);
+        }
 
         const updated = await prisma.monitor.update({
             where: { id },
@@ -555,7 +572,11 @@ export const resumeMonitor = async (req: AuthRequest, res: Response): Promise<vo
             ? req.body.interval 
             : monitor.interval;
 
-        await scheduleMonitor(id, interval);
+        try {
+            await scheduleMonitor(id, interval);
+        } catch (queueErr) {
+            console.warn("Could not schedule BullMQ in Redis (quota or connection issue):", queueErr);
+        }
 
         const updated = await prisma.monitor.update({
             where: { id },
@@ -576,5 +597,150 @@ export const resumeMonitor = async (req: AuthRequest, res: Response): Promise<vo
             success: false,
             message: error instanceof Error ? error.message : "Server error",
         });
+    }
+};
+
+// GET ALL INCIDENTS FOR USER
+export const getIncidents = async (
+    req: AuthRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        if (typeof req.userId !== "number") {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+        }
+
+        const incidents = await prisma.incident.findMany({
+            where: {
+                monitor: {
+                    project: {
+                        userId: req.userId,
+                    },
+                },
+            },
+            include: {
+                monitor: {
+                    include: {
+                        project: true,
+                        results: {
+                            take: 5,
+                            orderBy: { checkedAt: "desc" },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                startedAt: "desc",
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            count: incidents.length,
+            incidents,
+        });
+    } catch (error) {
+        console.error("Get incidents error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// ACKNOWLEDGE / RESOLVE INCIDENT
+export const acknowledgeIncident = async (
+    req: AuthRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        if (typeof req.userId !== "number") {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+        }
+
+        const { id } = req.params;
+        if (typeof id !== "string") {
+            res.status(400).json({ success: false, message: "Invalid incident ID" });
+            return;
+        }
+
+        const incident = await prisma.incident.findFirst({
+            where: {
+                id,
+                monitor: {
+                    project: {
+                        userId: req.userId,
+                    },
+                },
+            },
+        });
+
+        if (!incident) {
+            res.status(404).json({ success: false, message: "Incident not found" });
+            return;
+        }
+
+        const now = new Date();
+        const duration = Math.round((now.getTime() - new Date(incident.startedAt).getTime()) / 1000);
+
+        const updated = await prisma.incident.update({
+            where: { id },
+            data: {
+                status: "RESOLVED",
+                resolvedAt: now,
+                duration,
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Incident marked as resolved",
+            incident: updated,
+        });
+    } catch (error) {
+        console.error("Acknowledge incident error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// GET ALL LOGS FOR USER
+export const getLogs = async (
+    req: AuthRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        if (typeof req.userId !== "number") {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+        }
+
+        const logs = await prisma.monitorLog.findMany({
+            where: {
+                monitor: {
+                    project: {
+                        userId: req.userId,
+                    },
+                },
+            },
+            include: {
+                monitor: {
+                    include: {
+                        project: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 200,
+        });
+
+        res.status(200).json({
+            success: true,
+            count: logs.length,
+            logs,
+        });
+    } catch (error) {
+        console.error("Get logs error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };

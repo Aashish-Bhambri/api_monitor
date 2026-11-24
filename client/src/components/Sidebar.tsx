@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams, useLocation } from 'react-router'
 import {
   LayoutDashboard,
   Activity,
@@ -7,9 +8,10 @@ import {
   BarChart2,
   Settings,
   Plus,
-  ChevronDown,
   Zap,
+  LogOut,
 } from 'lucide-react'
+import { monitoringApi, type Monitor } from '../services/api'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,15 +19,10 @@ interface NavItem {
   id: string
   label: string
   icon: React.ReactNode
+  path: string
 }
 
 type StatusKind = 'up' | 'down' | 'degraded'
-
-interface MonitorEntry {
-  id: string
-  label: string
-  status: StatusKind
-}
 
 interface StatusPageEntry {
   id: string
@@ -41,24 +38,16 @@ export interface SidebarProps {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Overview',   icon: <LayoutDashboard size={15} /> },
-  { id: 'monitors',  label: 'Monitors',   icon: <Activity        size={15} /> },
-  { id: 'incidents', label: 'Incidents',  icon: <AlertTriangle   size={15} /> },
-  { id: 'logs',       label: 'Logs',       icon: <FileText        size={15} /> },
-  { id: 'reports',    label: 'Reports',    icon: <BarChart2       size={15} /> },
-  { id: 'settings',   label: 'Settings',   icon: <Settings        size={15} /> },
+  { id: 'dashboard', label: 'Overview',   icon: <LayoutDashboard size={15} />, path: '/dashboard' },
+  { id: 'monitors',  label: 'Monitors',   icon: <Activity        size={15} />, path: '/monitors' },
+  { id: 'incidents', label: 'Incidents',  icon: <AlertTriangle   size={15} />, path: '/incidents' },
+  { id: 'logs',      label: 'Logs',       icon: <FileText        size={15} />, path: '/logs' },
+  { id: 'reports',   label: 'Reports',    icon: <BarChart2       size={15} />, path: '/dashboard' },
+  { id: 'settings',  label: 'Settings',   icon: <Settings        size={15} />, path: '/dashboard' },
 ]
 
 const STATUS_PAGES: StatusPageEntry[] = [
   { id: 'cloud', label: 'Cloud Platform Status', status: 'up' },
-]
-
-const MONITORS: MonitorEntry[] = [
-  { id: 'prod',   label: 'Production API',  status: 'up'       },
-  { id: 'pay',    label: 'Payments API',    status: 'up'       },
-  { id: 'user',   label: 'User Service',    status: 'up'       },
-  { id: 'notif',  label: 'Notifications',   status: 'degraded' },
-  { id: 'analyt', label: 'Analytics API',   status: 'down'     },
 ]
 
 // ─── Status Colors (OpenStatus / Vercel style) ───────────────────────────────
@@ -78,11 +67,49 @@ const DOT_GLOW: Record<StatusKind, string> = {
 // ─── Sidebar Component ────────────────────────────────────────────────────────
 
 export default function Sidebar({ currentTab = 'dashboard', onTabChange }: SidebarProps) {
-  const [active, setActive] = useState(currentTab)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const activeMonitorId = searchParams.get('monitorId')
 
-  function handleNav(id: string) {
-    setActive(id)
-    onTabChange?.(id)
+  const active = location.pathname.startsWith('/monitors')
+    ? 'monitors'
+    : location.pathname.startsWith('/incidents')
+    ? 'incidents'
+    : location.pathname.startsWith('/logs')
+    ? 'logs'
+    : location.pathname.startsWith('/dashboard')
+    ? 'dashboard'
+    : currentTab
+  const [liveMonitors, setLiveMonitors] = useState<Monitor[]>([])
+
+  // Fetch real monitors from backend
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    const fetchMonitors = async () => {
+      try {
+        const data = await monitoringApi.getMonitors()
+        setLiveMonitors(data)
+      } catch {
+        // Ignored
+      }
+    }
+
+    fetchMonitors()
+    const timer = setInterval(fetchMonitors, 8000)
+    return () => clearInterval(timer)
+  }, [])
+
+  function handleNav(item: NavItem) {
+    onTabChange?.(item.id)
+    navigate(item.path)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
   }
 
   return (
@@ -115,29 +142,96 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
             key={item.id}
             item={item}
             isActive={active === item.id}
-            onClick={() => handleNav(item.id)}
+            onClick={() => handleNav(item)}
           />
         ))}
       </nav>
 
       {/* ── Status Pages ──────────────────────────────────────────────────── */}
-      <SectionLabel label="Status Pages" withAdd />
+      <SectionLabel label="Status Pages" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {STATUS_PAGES.map((p) => (
           <SubItem key={p.id} label={p.label} status={p.status} />
         ))}
       </div>
 
-      {/* ── Monitors ──────────────────────────────────────────────────────── */}
-      <SectionLabel label="Monitors" withAdd />
+      {/* ── Live Backend Monitors ─────────────────────────────────────────── */}
+      <SectionLabel
+        label="Monitors"
+        withAdd
+        onAddClick={() => navigate('/monitors?action=new')}
+      />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {MONITORS.map((m) => (
-          <SubItem key={m.id} label={m.label} status={m.status} />
-        ))}
+        {liveMonitors.length === 0 ? (
+          <div
+            onClick={() => navigate('/monitors?action=new')}
+            style={{
+              padding: '6px 12px',
+              fontSize: 12,
+              color: '#525252',
+              cursor: 'pointer',
+            }}
+          >
+            + Add first monitor
+          </div>
+        ) : (
+          liveMonitors.map((m) => {
+            const statusKind: StatusKind =
+              m.status === 'UP' ? 'up' : m.status === 'DOWN' ? 'down' : 'degraded'
+
+            // Clean short label from URL
+            let displayLabel = m.url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+            if (displayLabel.length > 22) {
+              displayLabel = displayLabel.slice(0, 20) + '...'
+            }
+
+            const isSelected = activeMonitorId === m.id
+
+            return (
+              <SubItem
+                key={m.id}
+                label={displayLabel}
+                status={statusKind}
+                isActive={isSelected}
+                onClick={() => navigate(`/dashboard?monitorId=${m.id}`)}
+              />
+            )
+          })
+        )}
       </div>
 
-      {/* ── Bottom spacer ─────────────────────────────────────────────────── */}
+      {/* ── Bottom spacer & Logout ─────────────────────────────────────────── */}
       <div style={{ flex: 1, minHeight: 24 }} />
+
+      <button
+        onClick={handleLogout}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          width: '100%',
+          padding: '10px 12px',
+          border: 'none',
+          borderRadius: 8,
+          cursor: 'pointer',
+          backgroundColor: 'transparent',
+          color: '#737373',
+          fontSize: 13,
+          marginBottom: 12,
+          transition: 'all 150ms ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = '#EF4444'
+          e.currentTarget.style.backgroundColor = '#1C1111'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = '#737373'
+          e.currentTarget.style.backgroundColor = 'transparent'
+        }}
+      >
+        <LogOut size={14} />
+        <span>Sign Out</span>
+      </button>
     </aside>
   )
 }
@@ -145,25 +239,23 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
 // ─── Workspace Switcher ───────────────────────────────────────────────────────
 
 function WorkspaceSwitcher() {
-  const [hovered, setHovered] = useState(false)
+  const navigate = useNavigate()
 
   return (
-    <button
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <div
+      onClick={() => navigate('/dashboard')}
       style={{
         display:         'flex',
         alignItems:      'center',
         gap:             10,
         width:           '100%',
         padding:         '14px 10px 12px',
-        background:      hovered ? '#161616' : 'transparent',
+        background:      'transparent',
         border:          'none',
         borderBottom:    '1px solid #1F1F1F',
         marginBottom:    8,
-        cursor:          'pointer',
         transition:      'all 150ms ease',
-        borderRadius:    0,
+        cursor:          'pointer',
       }}
     >
       {/* Dark minimalist logo mark */}
@@ -196,15 +288,21 @@ function WorkspaceSwitcher() {
       >
         API Monitor
       </span>
-
-      <ChevronDown size={14} color="#525252" strokeWidth={2} />
-    </button>
+    </div>
   )
 }
 
 // ─── Section Label ────────────────────────────────────────────────────────────
 
-function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) {
+function SectionLabel({
+  label,
+  withAdd,
+  onAddClick,
+}: {
+  label: string
+  withAdd?: boolean
+  onAddClick?: () => void
+}) {
   const [addHovered, setAddHovered] = useState(false)
 
   return (
@@ -230,8 +328,10 @@ function SectionLabel({ label, withAdd }: { label: string; withAdd?: boolean }) 
 
       {withAdd && (
         <button
+          onClick={onAddClick}
           onMouseEnter={() => setAddHovered(true)}
           onMouseLeave={() => setAddHovered(false)}
+          title="Add Monitor"
           style={{
             display:         'flex',
             alignItems:      'center',
@@ -304,11 +404,25 @@ function NavLink({
 
 // ─── SubItem ──────────────────────────────────────────────────────────────────
 
-function SubItem({ label, status }: { label: string; status: StatusKind }) {
+function SubItem({
+  label,
+  status,
+  onClick,
+  isActive = false,
+}: {
+  label: string
+  status: StatusKind
+  onClick?: () => void
+  isActive?: boolean
+}) {
   const [hovered, setHovered] = useState(false)
+
+  const bg = isActive ? '#1F1F1F' : hovered ? '#1A1A1A' : 'transparent'
+  const color = isActive ? '#FFFFFF' : hovered ? '#FFFFFF' : '#8A8A8A'
 
   return (
     <button
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -320,10 +434,10 @@ function SubItem({ label, status }: { label: string; status: StatusKind }) {
         border:          'none',
         borderRadius:    8,
         cursor:          'pointer',
-        backgroundColor: hovered ? '#1A1A1A' : 'transparent',
-        color:           hovered ? '#FFFFFF' : '#8A8A8A',
+        backgroundColor: bg,
+        color,
         fontSize:        13,
-        fontWeight:      400,
+        fontWeight:      isActive ? 600 : 400,
         textAlign:       'left',
         transition:      'all 150ms ease',
         letterSpacing:   '-0.005em',

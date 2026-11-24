@@ -12,20 +12,12 @@ export const monitorQueue = new Queue<MonitorJobData>(
         connection: redisOptions,
 
         defaultJobOptions: {
-            attempts: 2,
+            attempts: 1, // Single execution for demo, avoids infinite retry loops
 
-            backoff: {
-                type: "exponential",
-                delay: 5000,
-            },
-
-            removeOnComplete: {
-                age: 3600,
-                count: 1000,
-            },
+            removeOnComplete: true, // Immediately deletes completed jobs to avoid hoarding keys in Redis
 
             removeOnFail: {
-                age: 86400,
+                count: 50, // Keep at most 50 failed jobs in Redis
             },
         },
     }

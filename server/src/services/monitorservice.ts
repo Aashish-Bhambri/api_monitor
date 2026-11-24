@@ -93,5 +93,42 @@ export const runMonitorCheck = async (monitorId: string) => {
         }),
     ]);
 
+    // Automated Incident Detection & Auto-Resolution
+    try {
+        if (!result.success) {
+            const existingIncident = await prisma.incident.findFirst({
+                where: { monitorId: monitor.id, status: 'ONGOING' },
+            });
+            if (!existingIncident) {
+                await prisma.incident.create({
+                    data: {
+                        monitorId: monitor.id,
+                        status: 'ONGOING',
+                        cause: result.error || `HTTP ${result.statusCode || 500} - Failure detected during interval check`,
+                        startedAt: new Date(),
+                    },
+                });
+            }
+        } else {
+            const ongoing = await prisma.incident.findMany({
+                where: { monitorId: monitor.id, status: 'ONGOING' },
+            });
+            for (const inc of ongoing) {
+                const now = new Date();
+                const duration = Math.round((now.getTime() - new Date(inc.startedAt).getTime()) / 1000);
+                await prisma.incident.update({
+                    where: { id: inc.id },
+                    data: {
+                        status: 'RESOLVED',
+                        resolvedAt: now,
+                        duration,
+                    },
+                });
+            }
+        }
+    } catch (incidentErr) {
+        console.error("Incident tracking error:", incidentErr);
+    }
+
     return result;
 };

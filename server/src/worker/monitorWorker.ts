@@ -18,7 +18,9 @@ export const monitorWorker = new Worker(
     },
     {
         connection: redisOptions,
-        concurrency: 10,
+        concurrency: 2, // Optimized for demo: low concurrency reduces idle Redis pings
+        drainDelay: 30, // Sleep 30s when queue is empty instead of polling every 5s
+        stalledInterval: 120000, // Check stalled jobs every 2 minutes instead of 30s
     }
 );
 
