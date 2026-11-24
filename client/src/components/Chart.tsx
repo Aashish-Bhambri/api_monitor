@@ -277,13 +277,13 @@ export default function Chart({
                 title="Change interval between checks (60s reduces Redis load by 83%)"
               >
                 <option value={60} className="bg-[#141414] text-emerald-400 font-semibold">
-                  60s (Recommended • -83% Redis)
+                  60s 
                 </option>
                 <option value={120} className="bg-[#141414] text-purple-300">
-                  120s (2m • Demo Fleet)
+                  120s 
                 </option>
                 <option value={300} className="bg-[#141414]">
-                  300s (5m)
+                  300s 
                 </option>
                 <option value={30} className="bg-[#141414] text-neutral-400">
                   30s

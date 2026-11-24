@@ -376,9 +376,7 @@ export default function Dashboard() {
       {/* ── Top Header Bar (Matching Image 1) ── */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#1F1F1F]">
         <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-purple-600/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
-            <Activity size={18} />
-          </div>
+         
 
           <div className="min-w-0 flex-1 overflow-hidden">
             {/* Breadcrumb: Project Name / API Key Name */}
@@ -483,19 +481,6 @@ export default function Dashboard() {
                   {activeMonitor.status}
                 </span>
               )}
-
-              {/* Quick Delete Monitor Button in Title Bar */}
-              {activeMonitor && (
-                <button
-                  type="button"
-                  onClick={handleDeleteMonitor}
-                  disabled={isActionLoading}
-                  className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-red-950/20 transition-all shrink-0 cursor-pointer disabled:opacity-50"
-                  title="Delete this monitor and its telemetry"
-                >
-                  <Trash2 size={14} />
-                </button>
-              )}
             </h1>
             {activeProject?.description && (
               <p className="text-xs text-neutral-400 mt-0.5">{activeProject.description}</p>
@@ -505,47 +490,9 @@ export default function Dashboard() {
 
         {/* Action Controls on Top Right */}
         <div className="flex items-center gap-2.5 self-start md:self-center">
-          {/* Fast Trigger Hit Button in Header for Presentations */}
-          {activeMonitor && (
-            <button
-              onClick={handleTriggerHit}
-              disabled={isTriggering}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-[0_0_14px_rgba(147,51,234,0.45)] hover:shadow-[0_0_20px_rgba(147,51,234,0.6)] transition-all cursor-pointer disabled:opacity-50"
-              title="Trigger instant hit now (jump telemetry live during presentation)"
-            >
-              <Zap size={13} className={isTriggering ? 'animate-spin text-purple-200' : 'fill-white'} />
-              <span className="hidden sm:inline">{isTriggering ? 'Pinging API...' : 'Trigger Hit'}</span>
-            </button>
-          )}
+          
 
-          {/* Seed Fleet (If fewer than 4 monitors) */}
-          {monitors.length < 4 && (
-            <button
-              onClick={handleSeedDemoFleet}
-              disabled={isActionLoading}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222222] text-neutral-300 hover:text-purple-300 text-xs font-semibold border border-[#333333] transition-all cursor-pointer disabled:opacity-50"
-              title="Add 2-4 recommended demo endpoints (Operational, Down, Paused) to fleet"
-            >
-              <Sparkles size={12} className="text-purple-400" />
-              <span className="hidden lg:inline">Seed Fleet</span>
-            </button>
-          )}
-          {/* Live Polling Indicator */}
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141414] border border-[#222222] text-xs text-neutral-300"
-            title={`Last synced: ${lastSynced}`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                autoRefresh ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
-              }`}
-            />
-            <span className="hidden sm:inline">
-              {autoRefresh ? `Live (${lastSynced})` : 'Paused'}
-            </span>
-          </div>
-
-          {/* Toggle Auto-Refresh */}
+          
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className="p-2 rounded-lg bg-[#141414] hover:bg-[#1C1C1C] border border-[#222222] text-neutral-400 hover:text-white transition-colors cursor-pointer"
@@ -596,10 +543,7 @@ export default function Dashboard() {
               <span className="font-semibold uppercase tracking-wider text-[11px] text-neutral-400">
                 Uptime in %
               </span>
-              <span className="inline-flex items-center gap-1 text-[#10B981] font-semibold bg-[#10B981]/10 px-2 py-0.5 rounded-full text-[11px]">
-                <ArrowUpRight size={11} />
-                {uptimePercent}%
-              </span>
+              
             </div>
             <div className="text-3xl font-bold text-white tracking-tight">{uptimePercent}%</div>
             <p className="text-xs text-neutral-400 mt-1">
@@ -613,15 +557,7 @@ export default function Dashboard() {
               <span className="font-semibold uppercase tracking-wider text-[11px] text-neutral-400">
                 Fail number
               </span>
-              <span
-                className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[11px] ${
-                  failCount === 0
-                    ? 'text-[#10B981] bg-[#10B981]/10'
-                    : 'text-red-400 bg-red-400/10'
-                }`}
-              >
-                {failCount === 0 ? 'All Healthy' : `${failCount} errors`}
-              </span>
+              
             </div>
             <div
               className={`text-3xl font-bold tracking-tight ${
@@ -641,10 +577,7 @@ export default function Dashboard() {
               <span className="font-semibold uppercase tracking-wider text-[11px] text-neutral-400">
                 Average ping latency
               </span>
-              <span className="inline-flex items-center gap-1 text-purple-400 font-semibold bg-purple-500/10 px-2 py-0.5 rounded-full text-[11px]">
-                <Zap size={11} />
-                Avg
-              </span>
+              
             </div>
             <div className="text-3xl font-bold text-white tracking-tight flex items-baseline gap-1">
               {avgLatency} <span className="text-sm font-normal text-neutral-400">ms</span>
@@ -679,10 +612,7 @@ export default function Dashboard() {
               <span className="font-semibold uppercase tracking-wider text-[11px] text-neutral-400">
                 Up for Time
               </span>
-              <span className="inline-flex items-center gap-1 text-[#10B981] font-semibold bg-[#10B981]/10 px-2 py-0.5 rounded-full text-[11px]">
-                <Clock size={11} />
-                Uptime
-              </span>
+              
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight truncate">
               {upForTime}
@@ -716,15 +646,7 @@ export default function Dashboard() {
               <span className="font-semibold uppercase tracking-wider text-[11px] text-neutral-400">
                 Incidents
               </span>
-              <span
-                className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[11px] ${
-                  incidentCount === 0
-                    ? 'text-[#10B981] bg-[#10B981]/10'
-                    : 'text-amber-400 bg-amber-400/10'
-                }`}
-              >
-                {incidentCount === 0 ? 'Resolved' : 'Attention'}
-              </span>
+              
             </div>
             <div className="text-3xl font-bold text-white tracking-tight">{incidentCount}</div>
             <p className="text-xs text-neutral-400 mt-1">
