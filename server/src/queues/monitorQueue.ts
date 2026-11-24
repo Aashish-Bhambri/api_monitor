@@ -6,7 +6,7 @@ export interface MonitorJobData {
     monitorId: string;
 }
 
-export const monitorQueue = new Queue<MonitorJobData>(
+export const monitorQueue = new Queue<MonitorJobData, any, string>(
     "monitor-checks",
     {
         connection: redisOptions,

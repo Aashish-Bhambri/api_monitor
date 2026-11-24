@@ -10,9 +10,12 @@ const connectionString =
   process.env.STORAGE_PRISMA_DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error("DATABASE_URL (or STORAGE_DATABASE_URL_POOLED) must be set to initialize Prisma");
+  console.error("CRITICAL ERROR: DATABASE_URL environment variable is missing!");
 }
 
-const adapter = new PrismaPg({ connectionString });
+const safeConnectionString =
+  connectionString || "postgres://dummy:dummy@localhost:5432/dummy?sslmode=disable";
+
+const adapter = new PrismaPg({ connectionString: safeConnectionString });
 
 export const prisma = new PrismaClient({ adapter });

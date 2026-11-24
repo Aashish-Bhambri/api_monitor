@@ -22,6 +22,16 @@ app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API Monitor Server is running' });
 });
 
+// Environment and connectivity health check
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    isVercel: !!process.env.VERCEL,
+    hasDbUrl: !!(process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL_POOLED),
+    hasRedisUrl: !!process.env.REDIS_URL,
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoute);
 app.use('/api/projects', projectRoute);
