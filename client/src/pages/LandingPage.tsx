@@ -1,722 +1,724 @@
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import {
-  Zap,
-  ArrowRight,
   Activity,
-  Bell,
-  BarChart3,
-  ShieldCheck,
-  Check,
-  LayoutGrid,
   AlertTriangle,
+  ArrowRight,
   FileText,
-  Settings,
-  ChevronDown,
+  Menu,
+  Play,
+  X,
+  Zap,
+  Check,
 } from 'lucide-react';
+
+const NAV_LINKS = [
+  { label: 'Capabilities', href: '#capabilities', isRoute: false },
+  { label: 'Workflow', href: '#workflow', isRoute: false },
+  { label: 'Pricing', href: '#pricing', isRoute: false },
+  { label: 'API Tester', href: '/test', isRoute: true },
+] as const;
+
+const TECH_SPECS = [
+  { label: 'Polling Cadence', value: '60s synthetic intervals' },
+  { label: 'HTTP Methods', value: 'GET · POST · PUT · DELETE · PATCH · HEAD' },
+  { label: 'TLS Verification', value: 'Deterministic SSL expiry tracking' },
+  { label: 'Alert Routing', value: 'Email · Slack · Discord · Webhooks' },
+] as const;
+
+const CAPABILITIES = [
+  {
+    icon: Activity,
+    title: 'Synthetic Endpoint Monitors',
+    description:
+      'Schedule HTTP checks down to 60 seconds with custom headers, request payloads, pause controls, and SSL status tracking.',
+    routeTag: '/monitors',
+    accentClass: 'text-[#8B5CF6]',
+  },
+  {
+    icon: Play,
+    title: 'On-Demand API Test Runner',
+    description:
+      'Trigger immediate endpoint probes without waiting for the next polling tick and inspect status codes and response latency.',
+    routeTag: '/test',
+    accentClass: 'text-[#06B6D4]',
+  },
+  {
+    icon: AlertTriangle,
+    title: 'Incident Lifecycle Triage',
+    description:
+      'Separate ongoing outages from resolved incidents with failure durations, severity tags, and root-cause summaries.',
+    routeTag: '/incidents',
+    accentClass: 'text-[#F59E0B]',
+  },
+  {
+    icon: FileText,
+    title: 'Granular Execution Logs',
+    description:
+      'Filter check history by HTTP status, execution timestamp, response latency, and failure traces to pinpoint regressions.',
+    routeTag: '/logs',
+    accentClass: 'text-[#22C55E]',
+  },
+] as const;
+
+const WORKFLOW_STEPS = [
+  {
+    step: '1',
+    title: 'Define the target endpoint',
+    description:
+      'Set the endpoint URL, HTTP method, custom headers, request body, and 60-second check interval inside a project workspace.',
+  },
+  {
+    step: '2',
+    title: 'Verify immediately on demand',
+    description:
+      'Fire a live check from the API tester or monitor card to confirm 2xx health, TLS validity, and baseline response latency.',
+  },
+  {
+    step: '3',
+    title: 'Triage incidents with log context',
+    description:
+      'Correlate latency spikes, status code drops, and alert dispatches in one timeline the moment an endpoint degrades.',
+  },
+] as const;
+
+const FREE_FEATURES = [
+  '1 project workspace',
+  '60s synthetic HTTP checks',
+  'SSL validity & latency curves',
+  'Execution logs & email alerts',
+] as const;
+
+const PRO_FEATURES = [
+  'Unlimited project workspaces',
+  'All 6 HTTP methods & custom payloads',
+  'Email, Slack, Discord & webhook alerts',
+  'Multi-project incident & log triage',
+] as const;
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleGetStarted = () => {
-    navigate('/signup');
-  };
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
 
-  const handleSignIn = () => {
-    navigate('/login');
-  };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
+  const handleAnchorClick = (href: string) => {
+    setMobileMenuOpen(false);
+    const id = href.replace('#', '');
+    const target = document.getElementById(id);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white selection:bg-purple-600 selection:text-white font-sans antialiased overflow-x-hidden relative">
-      {/* ── Ambient Background Glows ── */}
-      <div className="pointer-events-none absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
-      <div className="pointer-events-none absolute top-[20%] right-0 w-[600px] h-[600px] bg-purple-900/15 rounded-full blur-[160px] translate-x-1/3" />
-      <div className="pointer-events-none absolute top-[60%] left-[-100px] w-[500px] h-[500px] bg-purple-700/10 rounded-full blur-[150px]" />
-
-      {/* ── 1. NAVBAR (Exact match to Image 1) ── */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-[#060608]/75 border-b border-[#1A1A22] transition-colors">
-        <div className="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between">
-          {/* Logo */}
-          <div
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-2.5 cursor-pointer group"
+    <div
+      id="top"
+      className="min-h-screen bg-[#0C0D0F] text-[#F3F4F6] selection:bg-[#8B5CF6] selection:text-white font-sans antialiased overflow-x-clip relative"
+    >
+      {/* ── Sticky Navigation ── */}
+      <header className="sticky top-0 z-50 bg-[#0C0D0F]/90 backdrop-blur-md border-b border-[#2A2F3A]">
+        <nav
+          aria-label="Primary navigation"
+          className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4"
+        >
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileMenuOpen(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="inline-flex items-center gap-2.5 min-h-[44px] pr-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F] group"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-[0_0_14px_rgba(147,51,234,0.45)] group-hover:scale-105 transition-transform">
-              <Zap size={16} className="text-white fill-white" />
+            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 ">
+              <Zap className="w-4 h-4 text-indigo-400" />
             </div>
-            <span className="text-base font-bold tracking-tight text-white">API Monitor</span>
+            <span className="text-base font-bold tracking-tight text-[#F3F4F6]">
+              API Monitor
+            </span>
+          </a>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-[#9CA3AF]">
+            {NAV_LINKS.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="py-2 hover:text-[#F3F4F6] transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleAnchorClick(item.href);
+                  }}
+                  className="py-2 hover:text-[#F3F4F6] transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                >
+                  {item.label}
+                </a>
+              )
+            )}
           </div>
 
-          {/* Center Navigation Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
-            <button
-              onClick={() => scrollToSection('features')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Product
-            </button>
-            <button
-              onClick={() => scrollToSection('features')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection('pricing')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Pricing
-            </button>
-            <button
-              onClick={() => scrollToSection('features')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Docs
-            </button>
-          </div>
-
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-3.5">
-            {/* Status Pill */}
-            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#101015] border border-[#20202A] text-xs font-medium text-neutral-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>All Systems Operational</span>
-            </div>
-
-            {/* Sign In */}
-            <button
-              onClick={handleSignIn}
-              className="text-sm font-medium text-neutral-300 hover:text-white px-3 py-1.5 transition-colors cursor-pointer"
+          {/* Desktop Auth Actions + Mobile Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/login"
+              className="hidden sm:inline-flex items-center justify-center min-h-[44px] px-3.5 text-sm font-medium text-[#D1D5DB] hover:text-white rounded-[10px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
             >
               Sign In
-            </button>
+            </Link>
 
-            {/* Get Started Button */}
-            <button
-              onClick={handleGetStarted}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#9333EA] hover:bg-[#8B5CF6] text-white text-sm font-semibold shadow-[0_0_16px_rgba(147,51,234,0.4)] hover:shadow-[0_0_24px_rgba(147,51,234,0.6)] transition-all cursor-pointer"
+            <Link
+              to="/signup?plan=free"
+              className="hidden sm:inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-sm font-semibold shadow-[0_4px_14px_rgba(0,0,0,0.45)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F]"
             >
               <span>Get Started</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              className="md:hidden inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-[10px] border border-[#2A2F3A] bg-[#111318] text-[#F3F4F6] hover:bg-[#1A1F28] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+            >
+              {mobileMenuOpen ? (
+                <X size={18} aria-hidden="true" />
+              ) : (
+                <Menu size={18} aria-hidden="true" />
+              )}
             </button>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* ── 2. HERO SECTION (Exact match to Image 1) ── */}
-      <section className="relative pt-12 md:pt-20 pb-16 md:pb-24 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* Left Column: Headline & CTAs */}
-          <div className="lg:col-span-6 space-y-6 text-left">
-            {/* Real-time API Monitoring Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#111118] border border-[#242432] text-xs font-medium text-neutral-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Real-time API Monitoring</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
-              Keep Your APIs{' '}
-              <span className="text-[#A855F7] inline-block">Online,</span> Always.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-neutral-400 max-w-lg leading-relaxed font-normal">
-              Monitor, track and get instant alerts for your APIs with powerful uptime and performance insights.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="pt-2 flex flex-wrap items-center gap-4">
-              <button
-                onClick={handleGetStarted}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#9333EA] hover:bg-[#8B5CF6] text-white font-semibold text-sm sm:text-base shadow-[0_0_24px_rgba(147,51,234,0.45)] hover:shadow-[0_0_32px_rgba(147,51,234,0.65)] transition-all cursor-pointer"
-              >
-                <span>Start Monitoring Free</span>
-                <ArrowRight size={16} />
-              </button>
-
-              <button
-                onClick={() => scrollToSection('features')}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#111118] hover:bg-[#191924] text-neutral-200 border border-[#282836] hover:border-neutral-600 font-semibold text-sm sm:text-base transition-all cursor-pointer"
-              >
-                Learn More
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: 3D Perspective Dashboard Mockup (Exact match to Image 1) */}
-          <div className="lg:col-span-6 flex justify-center lg:justify-end">
-            <div className="w-full max-w-xl relative group">
-              {/* Outer Glow Aura behind mockup */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/30 via-indigo-600/20 to-purple-800/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-700" />
-
-              {/* Mockup Frame with Isometric / Perspective 3D rotation */}
-              <div className="relative rounded-2xl bg-[#0D0D12] border border-[#232330] shadow-[0_24px_70px_rgba(0,0,0,0.85)] p-4 sm:p-5 flex gap-4 text-xs select-none transition-transform duration-500 hover:scale-[1.02]">
-                {/* Mockup Mini Sidebar */}
-                <div className="hidden sm:flex flex-col justify-between w-36 border-r border-[#1B1B25] pr-3 shrink-0 text-left">
-                  <div className="space-y-4">
-                    {/* Logo inside mockup */}
-                    <div className="flex items-center gap-2 font-bold text-white text-[11px] pb-1">
-                      <div className="w-5 h-5 rounded-md bg-purple-600 flex items-center justify-center">
-                        <Zap size={10} className="fill-white text-white" />
-                      </div>
-                      <span>API Monitor</span>
-                    </div>
-
-                    {/* Workspace */}
-                    <div>
-                      <div className="text-[9px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
-                        WORKSPACE
-                      </div>
-                      <div className="space-y-1">
-                        <div className="px-2.5 py-1.5 rounded-lg bg-white text-black font-bold flex items-center gap-2 text-[11px]">
-                          <LayoutGrid size={12} />
-                          <span>Overview</span>
-                        </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-neutral-400 hover:text-white flex items-center gap-2 text-[11px]">
-                          <Activity size={12} />
-                          <span>Monitors</span>
-                        </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-neutral-400 hover:text-white flex items-center gap-2 text-[11px]">
-                          <AlertTriangle size={12} />
-                          <span>Incidents</span>
-                        </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-neutral-400 hover:text-white flex items-center gap-2 text-[11px]">
-                          <FileText size={12} />
-                          <span>Logs</span>
-                        </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-neutral-400 hover:text-white flex items-center gap-2 text-[11px]">
-                          <BarChart3 size={12} />
-                          <span>Reports</span>
-                        </div>
-                        <div className="px-2.5 py-1.5 rounded-lg text-neutral-400 hover:text-white flex items-center gap-2 text-[11px]">
-                          <Settings size={12} />
-                          <span>Settings</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mockup Mini Main Content */}
-                <div className="flex-1 space-y-3.5 min-w-0 text-left">
-                  {/* Top Bar inside Mockup */}
-                  <div className="flex items-center justify-between pb-1 border-b border-[#1A1A24]">
-                    <div className="font-bold text-white text-xs">Overview</div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#161620] border border-[#252532] text-[10px] text-neutral-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Live (04:30:36 PM)</span>
-                      <ChevronDown size={10} className="text-neutral-500" />
-                    </div>
-                  </div>
-
-                  {/* 3 Metric Cards */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="p-2.5 rounded-xl bg-[#13131A] border border-[#22222E]">
-                      <div className="text-[10px] text-neutral-400">Uptime %</div>
-                      <div className="text-base font-bold text-white mt-0.5">100.0%</div>
-                      <div className="text-[9px] text-emerald-400 font-semibold mt-0.5">▲ +0.1%</div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-[#13131A] border border-[#22222E]">
-                      <div className="text-[10px] text-neutral-400">Avg Response</div>
-                      <div className="text-base font-bold text-white mt-0.5">213 ms</div>
-                      <div className="text-[9px] text-purple-400 font-semibold mt-0.5">▼ -12ms</div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-[#13131A] border border-[#22222E]">
-                      <div className="text-[10px] text-neutral-400">Incidents</div>
-                      <div className="text-base font-bold text-white mt-0.5">0</div>
-                      <div className="text-[9px] text-neutral-500 font-medium mt-0.5">▼ 0%</div>
-                    </div>
-                  </div>
-
-                  {/* Response Time Graph Box */}
-                  <div className="p-3 rounded-xl bg-[#13131A] border border-[#22222E] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white text-[11px]">Response Time</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-800/40 text-[9px] font-semibold text-emerald-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        Healthy
-                      </span>
-                    </div>
-
-                    {/* SVG Telemetry Curve with glowing tooltip */}
-                    <div className="relative pt-1 flex gap-2">
-                      {/* Y-axis labels (Matching Image 1) */}
-                      <div className="flex flex-col justify-between text-[7.5px] text-neutral-500 font-mono py-0.5 select-none shrink-0 text-right w-7">
-                        <span>600ms</span>
-                        <span>400ms</span>
-                        <span>200ms</span>
-                        <span>0ms</span>
-                      </div>
-
-                      <div className="relative flex-1 min-w-0">
-                        {/* Tooltip Pill */}
-                        <div className="absolute top-0.5 left-[68%] -translate-x-1/2 z-10 px-2 py-0.5 rounded-md bg-[#1E1B2E] border border-purple-500/50 text-[9px] font-bold text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.5)]">
-                          213 ms
-                        </div>
-
-                        <svg viewBox="0 0 320 90" className="w-full h-20 overflow-visible">
-                          <defs>
-                            <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.4" />
-                              <stop offset="100%" stopColor="#A855F7" stopOpacity="0.0" />
-                            </linearGradient>
-                          </defs>
-
-                          {/* Grid lines */}
-                          <line x1="0" y1="20" x2="320" y2="20" stroke="#1F1F2C" strokeDasharray="2 2" />
-                          <line x1="0" y1="50" x2="320" y2="50" stroke="#1F1F2C" strokeDasharray="2 2" />
-                          <line x1="0" y1="80" x2="320" y2="80" stroke="#1F1F2C" />
-
-                          {/* Area Fill */}
-                          <path
-                            d="M 0 65 Q 20 60, 40 62 T 80 58 T 120 60 T 160 52 T 200 62 T 220 30 T 260 62 T 300 58 T 320 62 L 320 85 L 0 85 Z"
-                            fill="url(#purpleGrad)"
-                          />
-
-                          {/* Line Stroke */}
-                          <path
-                            d="M 0 65 Q 20 60, 40 62 T 80 58 T 120 60 T 160 52 T 200 62 T 220 30 T 260 62 T 300 58 T 320 62"
-                            fill="none"
-                            stroke="#A855F7"
-                            strokeWidth="2.2"
-                          />
-
-                          {/* Highlighted Glowing Node */}
-                          <circle cx="220" cy="30" r="4.5" fill="#FFFFFF" stroke="#9333EA" strokeWidth="2.5" />
-                          <circle cx="220" cy="30" r="9" fill="#A855F7" fillOpacity="0.3" />
-                        </svg>
-
-                        {/* X-axis labels */}
-                        <div className="flex justify-between text-[8px] text-neutral-500 font-mono mt-1 px-1">
-                          <span>12AM</span>
-                          <span>6AM</span>
-                          <span>12PM</span>
-                          <span>6PM</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 3. BOTTOM HERO HIGHLIGHTS BAR (4 Pillars, matching Image 1 bottom) ── */}
-        <div className="mt-16 sm:mt-20 pt-8 pb-4 border-t border-b border-[#171720]">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {/* Pillar 1 */}
-            <div className="flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/15 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0">
-                <Activity size={20} />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-white">Real-time Monitoring</h4>
-                <p className="text-xs text-neutral-400 mt-0.5">Track performance 24/7</p>
-              </div>
-            </div>
-
-            {/* Pillar 2 */}
-            <div className="flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/15 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0">
-                <Bell size={20} />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-white">Instant Alerts</h4>
-                <p className="text-xs text-neutral-400 mt-0.5">Get notified immediately</p>
-              </div>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
-                <BarChart3 size={20} />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-white">Detailed Insights</h4>
-                <p className="text-xs text-neutral-400 mt-0.5">Analyze and improve</p>
-              </div>
-            </div>
-
-            {/* Pillar 4 */}
-            <div className="flex items-center gap-3.5 text-left">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
-                <ShieldCheck size={20} />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-white">Reliable & Secure</h4>
-                <p className="text-xs text-neutral-400 mt-0.5">Your data stays protected</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4. FEATURES SECTION (Exact match to Image 2 Top) ── */}
-      <section id="features" className="py-20 md:py-28 max-w-7xl mx-auto px-6 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
-          {/* Left Column: Heading & Description */}
-          <div className="lg:col-span-5 space-y-6 text-left">
-            {/* Powerful Features Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13111C] border border-[#2B1B40] text-xs font-medium text-purple-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-              <span>Powerful Features</span>
-            </div>
-
-            {/* Section Headline */}
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Everything you need to monitor your <span className="text-[#A855F7]">APIs.</span>
-            </h2>
-
-            {/* Description */}
-            <p className="text-base text-neutral-400 leading-relaxed font-normal">
-              Get real-time insights, stay ahead of issues, and keep your services running smoothly.
-            </p>
-          </div>
-
-          {/* Right Column: 2x2 Feature Cards Grid */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 text-left">
-            {/* Card 1: Real-time Monitoring */}
-            <div className="p-6 rounded-2xl bg-[#0D0D12] border border-[#1E1E28] hover:border-purple-500/40 transition-all duration-300 group">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/15 border border-purple-500/25 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                <Activity size={20} />
-              </div>
-              <h3 className="text-base font-bold text-white mt-4">Real-time Monitoring</h3>
-              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                Track uptime and performance in real-time, 24/7.
-              </p>
-            </div>
-
-            {/* Card 2: Instant Alerts */}
-            <div className="p-6 rounded-2xl bg-[#0D0D12] border border-[#1E1E28] hover:border-emerald-500/40 transition-all duration-300 group">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <Bell size={20} />
-              </div>
-              <h3 className="text-base font-bold text-white mt-4">Instant Alerts</h3>
-              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                Get notified via email, Slack or webhooks.
-              </p>
-            </div>
-
-            {/* Card 3: Detailed Analytics */}
-            <div className="p-6 rounded-2xl bg-[#0D0D12] border border-[#1E1E28] hover:border-purple-500/40 transition-all duration-300 group">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/15 border border-purple-500/25 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                <BarChart3 size={20} />
-              </div>
-              <h3 className="text-base font-bold text-white mt-4">Detailed Analytics</h3>
-              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                Analyze response times, latency and trends.
-              </p>
-            </div>
-
-            {/* Card 4: Reliable & Secure */}
-            <div className="p-6 rounded-2xl bg-[#0D0D12] border border-[#1E1E28] hover:border-emerald-500/40 transition-all duration-300 group">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <ShieldCheck size={20} />
-              </div>
-              <h3 className="text-base font-bold text-white mt-4">Reliable & Secure</h3>
-              <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                Your data stays protected with enterprise-grade security.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 5. SOCIAL PROOF / TRUSTED BY (Exact match to Image 2 Middle) ── */}
-      <section className="py-14 border-t border-b border-[#161620] relative">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-            <span>TRUSTED BY DEVELOPERS WORLDWIDE</span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 text-neutral-300">
-            {/* Vercel */}
-            <div className="flex items-center gap-2 font-semibold text-lg hover:text-white transition-colors">
-              <svg viewBox="0 0 76 65" className="w-5 h-4 fill-current">
-                <polygon points="38,0 76,65 0,65" />
-              </svg>
-              <span>Vercel</span>
-            </div>
-
-            {/* GitHub */}
-            <div className="flex items-center gap-2 font-semibold text-lg hover:text-white transition-colors">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-              </svg>
-              <span>GitHub</span>
-            </div>
-
-            {/* Netlify */}
-            <div className="flex items-center gap-2 font-semibold text-lg hover:text-white transition-colors">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                <path d="M16.5 3L12 7.5 7.5 3 3 7.5 7.5 12 3 16.5 7.5 21l4.5-4.5 4.5 4.5 4.5-4.5-4.5-4.5 4.5-4.5z" />
-              </svg>
-              <span>Netlify</span>
-            </div>
-
-            {/* Cloudflare */}
-            <div className="flex items-center gap-2 font-semibold text-lg hover:text-white transition-colors">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
-              </svg>
-              <span>Cloudflare</span>
-            </div>
-
-            {/* DigitalOcean */}
-            <div className="flex items-center gap-2 font-semibold text-lg hover:text-white transition-colors">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                <path d="M12.04 0C5.408 0 .04 5.367.04 12c0 3.316 1.343 6.32 3.518 8.495l2.483-2.484A8.47 8.47 0 013.56 12c0-4.683 3.797-8.48 8.48-8.48 4.683 0 8.48 3.797 8.48 8.48 0 4.683-3.797 8.48-8.48 8.48v3.52c6.633 0 12-5.367 12-12S18.673 0 12.04 0zm-1.76 17.6h3.52v3.52h-3.52z" />
-              </svg>
-              <span>DigitalOcean</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 6. PRICING SECTION (Exact match to Image 2 Middle-Bottom) ── */}
-      <section id="pricing" className="py-20 md:py-28 max-w-7xl mx-auto px-6 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-          {/* Left Column: Heading & Description */}
-          <div className="lg:col-span-5 space-y-6 text-left">
-            {/* Simple Pricing Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13111C] border border-[#2B1B40] text-xs font-medium text-purple-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-              <span>Simple Pricing</span>
-            </div>
-
-            {/* Section Headline */}
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Start Free. <br />
-              Scale as You Grow.
-            </h2>
-
-            {/* Description */}
-            <p className="text-base text-neutral-400 leading-relaxed font-normal">
-              No credit card required. Get started in seconds and explore all features.
-            </p>
-
-            {/* CTA Button */}
-            <div className="pt-2">
-              <button
-                onClick={handleGetStarted}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#9333EA] hover:bg-[#8B5CF6] text-white font-semibold text-sm sm:text-base shadow-[0_0_24px_rgba(147,51,234,0.45)] hover:shadow-[0_0_32px_rgba(147,51,234,0.65)] transition-all cursor-pointer"
-              >
-                <span>Create Free Account</span>
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: 2 Pricing Cards */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
-            {/* Pro Card (Most Popular) */}
-            <div className="p-7 rounded-2xl bg-[#0D0D12] border border-purple-500/40 relative shadow-[0_0_40px_rgba(147,51,234,0.15)] flex flex-col justify-between">
-              <div>
-                {/* Most Popular Badge */}
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-950/40 border border-emerald-800/40 text-[11px] font-semibold text-emerald-400 mb-3">
-                  Most Popular
-                </span>
-
-                <h3 className="text-2xl font-bold text-white">Pro</h3>
-
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white tracking-tight">$19</span>
-                  <span className="text-sm font-normal text-neutral-400">/ month</span>
-                </div>
-
-                {/* Features List */}
-                <div className="mt-6 space-y-3.5">
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Unlimited Projects</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Real-time Alerts</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Advanced Analytics</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Team Collaboration</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upgrade Button */}
-              <button
-                onClick={handleGetStarted}
-                className="w-full mt-8 py-3 rounded-xl bg-[#15151D] hover:bg-[#1E1E28] border border-[#2B2B3A] text-white font-semibold text-xs transition-all cursor-pointer text-center"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-
-            {/* Free Card */}
-            <div className="p-7 rounded-2xl bg-[#0D0D12] border border-[#1E1E28] flex flex-col justify-between">
-              <div>
-                {/* Spacing placeholder to align with Pro card */}
-                <div className="h-6 mb-3" />
-
-                <h3 className="text-2xl font-bold text-white">Free</h3>
-
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white tracking-tight">$0</span>
-                  <span className="text-sm font-normal text-neutral-400">/ forever</span>
-                </div>
-
-                {/* Features List */}
-                <div className="mt-6 space-y-3.5">
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>1 Project</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Basic Monitoring</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 text-xs text-neutral-300">
-                    <Check size={14} className="text-purple-400 shrink-0" />
-                    <span>Email Alerts</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Get Started Button */}
-              <button
-                onClick={handleGetStarted}
-                className="w-full mt-8 py-3 rounded-xl bg-[#15151D] hover:bg-[#1E1E28] border border-[#2B2B3A] text-white font-semibold text-xs transition-all cursor-pointer text-center"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. BOTTOM CTA BANNER (Exact match to Image 2 Bottom) ── */}
-      <section className="max-w-7xl mx-auto px-6 py-10">
-        <div className="p-8 sm:p-10 rounded-2xl bg-[#0C0C12] border border-[#1F1F2B] shadow-[0_0_50px_rgba(147,51,234,0.12)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="flex items-center gap-4 text-left">
-            <div className="w-12 h-12 rounded-xl bg-purple-600/20 border border-purple-500/35 flex items-center justify-center text-purple-400 shadow-[0_0_16px_rgba(147,51,234,0.35)] shrink-0">
-              <Zap size={22} className="fill-purple-400" />
-            </div>
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">Ready to keep your APIs online?</h3>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-                Join thousands of developers who trust API Monitor.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleGetStarted}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#9333EA] hover:bg-[#8B5CF6] text-white font-semibold text-sm shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all cursor-pointer shrink-0"
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div
+            id="mobile-nav-drawer"
+            className="md:hidden border-t border-[#2A2F3A] bg-[#111318] px-4 py-4 space-y-2"
           >
-            <span>Get Started Free</span>
-            <ArrowRight size={15} />
-          </button>
+            <div className="flex flex-col gap-1">
+              {NAV_LINKS.map((item) =>
+                item.isRoute ? (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="min-h-[44px] px-3 rounded-[10px] flex items-center justify-between text-sm font-medium text-[#D1D5DB] hover:bg-[#1A1F28] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                  >
+                    <span>{item.label}</span>
+                    <ArrowRight size={14} className="text-[#9CA3AF]" aria-hidden="true" />
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleAnchorClick(item.href);
+                    }}
+                    className="min-h-[44px] px-3 rounded-[10px] flex items-center text-sm font-medium text-[#D1D5DB] hover:bg-[#1A1F28] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-[#2A2F3A] grid grid-cols-2 gap-2.5">
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="min-h-[44px] inline-flex items-center justify-center rounded-[10px] border border-[#2A2F3A] bg-[#1A1F28] text-sm font-medium text-[#F3F4F6] hover:bg-[#202633] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/signup?plan=free"
+                onClick={() => setMobileMenuOpen(false)}
+                className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+              >
+                <span>Get Started</span>
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+
+      <main>
+        {/* ── Hero Section ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 md:pt-20 pb-14 md:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left Column: Value Proposition & CTAs */}
+            <div className="lg:col-span-6 space-y-6 text-left">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-[-0.03em] text-[#F3F4F6] leading-[1.06] text-balance">
+                Keep Your APIs{' '}
+                <span className="text-[#8B5CF6]">Online,</span> Always.
+              </h1>
+
+              <p className="text-base sm:text-lg text-[#9CA3AF] max-w-[54ch] leading-relaxed">
+                Run 60-second synthetic HTTP checks, verify SSL expiry, inspect response latency curves, and trace failing payloads in one telemetry workspace.
+              </p>
+
+              <div className="pt-1 flex flex-wrap items-center gap-3.5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup?plan=free')}
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-3 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm sm:text-base shadow-[0_6px_18px_rgba(0,0,0,0.45)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F]"
+                >
+                  <span>Start Monitoring Free</span>
+                  <ArrowRight size={16} aria-hidden="true" />
+                </button>
+
+                <Link
+                  to="/test"
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 rounded-[10px] bg-[#1A1F28] hover:bg-[#202633] text-[#F3F4F6] border border-[#2A2F3A] hover:border-[#363D4A] font-semibold text-sm sm:text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#06B6D4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F]"
+                >
+                  <Play size={15} className="text-[#06B6D4]" aria-hidden="true" />
+                  <span>Open API Tester</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column: Illustrative Telemetry Preview (flat single-container surface, decorative) */}
+            <div className="lg:col-span-6" aria-hidden="true">
+              <div className="rounded-2xl bg-[#111318] border border-[#2A2F3A] shadow-[0_20px_50px_rgba(0,0,0,0.55)] overflow-hidden select-none">
+                {/* Frame Header */}
+                <div className="px-4 sm:px-5 py-3.5 bg-[#151922] border-b border-[#2A2F3A] flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="px-2 py-0.5 rounded-[6px] bg-[rgba(6,182,212,0.14)] text-[#06B6D4] font-mono text-xs font-semibold">
+                      GET
+                    </span>
+                    <span className="font-mono text-xs sm:text-sm text-[#F3F4F6] truncate">
+                      /v1/payments/authorize
+                    </span>
+                  </div>
+
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[rgba(34,197,94,0.12)] text-[#22C55E] text-xs font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+                    <span>200 OK · Sample</span>
+                  </span>
+                </div>
+
+                {/* Hairline-divided KPI Strip (no nested cards) */}
+                <div className="grid grid-cols-3 divide-x divide-[#2A2F3A] border-b border-[#2A2F3A]">
+                  <div className="px-4 py-3.5">
+                    <div className="text-xs text-[#9CA3AF]">Uptime (30d)</div>
+                    <div className="mt-1 text-lg sm:text-xl font-bold text-[#F3F4F6] tabular-nums">
+                      99.98%
+                    </div>
+                  </div>
+                  <div className="px-4 py-3.5">
+                    <div className="text-xs text-[#9CA3AF]">p95 Latency</div>
+                    <div className="mt-1 text-lg sm:text-xl font-bold text-[#F3F4F6] tabular-nums">
+                      213 ms
+                    </div>
+                  </div>
+                  <div className="px-4 py-3.5">
+                    <div className="text-xs text-[#9CA3AF]">SSL Certificate</div>
+                    <div className="mt-1 text-lg sm:text-xl font-bold text-[#22C55E] tabular-nums">
+                      Valid (142d)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Latency Curve Canvas */}
+                <div className="p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-[#F3F4F6]">Response Latency</span>
+                    <span className="font-mono text-[#9CA3AF] tabular-nums">
+                      60s polling · TLS verified
+                    </span>
+                  </div>
+
+                  <div className="flex items-stretch gap-3">
+                    <div className="flex flex-col justify-between text-[11px] text-[#9CA3AF] font-mono tabular-nums text-right shrink-0 py-0.5">
+                      <span>600ms</span>
+                      <span>300ms</span>
+                      <span>0ms</span>
+                    </div>
+
+                    <div className="relative flex-1 min-w-0">
+                      <div className="absolute top-0 left-[68%] -translate-x-1/2 px-2 py-0.5 rounded-[6px] bg-[#1A1F28] border border-[#8B5CF6]/60 text-[11px] font-mono font-semibold text-[#F3F4F6] shadow-[0_4px_12px_rgba(0,0,0,0.45)] tabular-nums">
+                        213 ms
+                      </div>
+
+                      <svg viewBox="0 0 320 96" className="w-full h-24 overflow-visible">
+                        <defs>
+                          <linearGradient id="latencyAreaFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+
+                        <line x1="0" y1="22" x2="320" y2="22" stroke="#2A2F3A" strokeDasharray="3 3" />
+                        <line x1="0" y1="54" x2="320" y2="54" stroke="#2A2F3A" strokeDasharray="3 3" />
+                        <line x1="0" y1="86" x2="320" y2="86" stroke="#2A2F3A" />
+
+                        <path
+                          d="M 0 68 Q 20 62, 40 64 T 80 60 T 120 62 T 160 54 T 200 63 T 220 34 T 260 62 T 300 59 T 320 63 L 320 86 L 0 86 Z"
+                          fill="url(#latencyAreaFill)"
+                        />
+
+                        <path
+                          d="M 0 68 Q 20 62, 40 64 T 80 60 T 120 62 T 160 54 T 200 63 T 220 34 T 260 62 T 300 59 T 320 63"
+                          fill="none"
+                          stroke="#8B5CF6"
+                          strokeWidth="2.2"
+                        />
+
+                        <path
+                          d="M 0 74 Q 40 72, 80 71 T 160 69 T 240 73 T 320 70"
+                          fill="none"
+                          stroke="#06B6D4"
+                          strokeOpacity="0.65"
+                          strokeWidth="1.5"
+                          strokeDasharray="4 3"
+                        />
+
+                        <circle cx="220" cy="34" r="4.5" fill="#F3F4F6" stroke="#8B5CF6" strokeWidth="2.5" />
+                      </svg>
+
+                      <div className="flex justify-between text-[11px] text-[#9CA3AF] font-mono tabular-nums mt-1">
+                        <span>00:00</span>
+                        <span>06:00</span>
+                        <span>12:00</span>
+                        <span>18:00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Execution Trace Strip */}
+                <div className="px-4 sm:px-5 py-3 bg-[#0C0D0F]/60 border-t border-[#2A2F3A] flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#9CA3AF]">
+                  <span>POST /v1/webhooks/stripe · 200 OK</span>
+                  <span className="text-[#06B6D4] tabular-nums">148 ms · 60s check</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Technical Specification Strip (semantic dl, no skipped headings) */}
+          <dl className="mt-14 md:mt-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#2A2F3A] border-y border-[#2A2F3A]">
+            {TECH_SPECS.map((spec) => (
+              <div key={spec.label} className="py-5 sm:px-6 first:sm:pl-0 last:sm:pr-0">
+                <dt className="text-xs font-medium text-[#9CA3AF]">{spec.label}</dt>
+                <dd className="mt-1.5 text-sm font-semibold text-[#F3F4F6] font-mono">
+                  {spec.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* ── Capabilities Matrix ── */}
+        <section id="capabilities" className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            <div className="lg:col-span-5 space-y-5 text-left">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.025em] text-[#F3F4F6] leading-[1.12] text-balance">
+                Built for Low-Latency Incident{' '}
+                <span className="text-[#8B5CF6]">Triage.</span>
+              </h2>
+
+              <p className="text-base text-[#9CA3AF] leading-relaxed max-w-[46ch]">
+                Inspect synthetic uptime, execution logs, and outage root causes in one workspace without the configuration friction of enterprise APM suites.
+              </p>
+
+              <div className="pt-1">
+                <Link
+                  to="/test"
+                  className="inline-flex items-center gap-2 min-h-[44px] text-sm font-semibold text-[#06B6D4] hover:text-[#22D3EE] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#06B6D4] rounded-md"
+                >
+                  <span>Try the API Test Runner</span>
+                  <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 rounded-2xl border border-[#2A2F3A] bg-[#111318] divide-y divide-[#2A2F3A]">
+              {CAPABILITIES.map((cap) => {
+                const Icon = cap.icon;
+                return (
+                  <div
+                    key={cap.title}
+                    className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4 hover:bg-[#161922] transition-colors first:rounded-t-2xl last:rounded-b-2xl"
+                  >
+                    <div className="flex items-start gap-3.5 min-w-0">
+                      <Icon
+                        size={18}
+                        className={`${cap.accentClass} mt-1 shrink-0`}
+                        aria-hidden="true"
+                      />
+                      <div className="space-y-1.5">
+                        <h3 className="text-base font-bold text-[#F3F4F6]">{cap.title}</h3>
+                        <p className="text-sm text-[#9CA3AF] leading-relaxed max-w-[56ch]">
+                          {cap.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="self-start shrink-0 px-2.5 py-1 rounded-[6px] bg-[#1A1F28] border border-[#2A2F3A] font-mono text-xs text-[#D1D5DB]">
+                      {cap.routeTag}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Verification Workflow ── */}
+        <section
+          id="workflow"
+          className="py-16 md:py-20 border-y border-[#2A2F3A] bg-[#111318]/45"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+            <div className="max-w-2xl space-y-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.02em] text-[#F3F4F6] text-balance">
+                From Endpoint URL to Root Cause in Under a Minute.
+              </h2>
+              <p className="text-base text-[#9CA3AF] leading-relaxed">
+                Every workflow in API Monitor connects monitoring setup directly to live verification and structured execution logs.
+              </p>
+            </div>
+
+            <ol className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {WORKFLOW_STEPS.map((item) => (
+                <li
+                  key={item.step}
+                  className="pt-5 border-t border-[#2A2F3A] space-y-2.5 text-left"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-xs font-bold text-[#06B6D4] tabular-nums">
+                      {item.step.padStart(2, '0')}
+                    </span>
+                    <h3 className="text-base font-bold text-[#F3F4F6]">{item.title}</h3>
+                  </div>
+                  <p className="text-sm text-[#9CA3AF] leading-relaxed text-pretty">{item.description}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ── Pricing Section ── */}
+        <section id="pricing" className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            <div className="lg:col-span-5 space-y-5 text-left">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.025em] text-[#F3F4F6] leading-[1.12] text-balance">
+                Start Free. Scale Without Bloat.
+              </h2>
+
+              <p className="text-base text-[#9CA3AF] leading-relaxed max-w-[42ch]">
+                Create a workspace in seconds with no credit card required and verify live endpoints right away.
+              </p>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup?plan=free')}
+                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-3 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm sm:text-base shadow-[0_6px_18px_rgba(0,0,0,0.45)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F]"
+                >
+                  <span>Create Free Account</span>
+                  <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5 text-left">
+              {/* Pro Tier */}
+              <div className="p-7 rounded-2xl bg-[#111318] border border-[#8B5CF6]/60 shadow-[0_12px_32px_rgba(0,0,0,0.45)] flex flex-col justify-between gap-8">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-2xl font-bold text-[#F3F4F6]">Pro</h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[rgba(34,197,94,0.12)] text-[#22C55E] text-xs font-semibold">
+                      Recommended
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-extrabold text-[#F3F4F6] tracking-tight tabular-nums">
+                      $19
+                    </span>
+                    <span className="text-sm text-[#9CA3AF]">/ month</span>
+                  </div>
+
+                  <ul className="mt-6 space-y-3">
+                    {PRO_FEATURES.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2.5 text-sm text-[#D1D5DB]">
+                        <Check size={15} className="text-[#8B5CF6] shrink-0" aria-hidden="true" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup?plan=pro')}
+                  className="w-full min-h-[44px] py-2.5 px-4 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111318]"
+                >
+                  Choose Pro Plan
+                </button>
+              </div>
+
+              {/* Free Tier */}
+              <div className="p-7 rounded-2xl bg-[#111318] border border-[#2A2F3A] flex flex-col justify-between gap-8">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-2xl font-bold text-[#F3F4F6]">Free</h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#1A1F28] text-[#9CA3AF] text-xs font-medium">
+                      No card required
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-extrabold text-[#F3F4F6] tracking-tight tabular-nums">
+                      $0
+                    </span>
+                    <span className="text-sm text-[#9CA3AF]">/ forever</span>
+                  </div>
+
+                  <ul className="mt-6 space-y-3">
+                    {FREE_FEATURES.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2.5 text-sm text-[#D1D5DB]">
+                        <Check size={15} className="text-[#06B6D4] shrink-0" aria-hidden="true" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup?plan=free')}
+                  className="w-full min-h-[44px] py-2.5 px-4 rounded-[10px] bg-[#1A1F28] hover:bg-[#202633] border border-[#2A2F3A] hover:border-[#363D4A] text-[#F3F4F6] font-semibold text-sm transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111318]"
+                >
+                  Start with Free
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Bottom CTA Banner ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+          <div className="p-7 sm:p-10 rounded-2xl bg-[#111318] border border-[#2A2F3A] shadow-[0_12px_32px_rgba(0,0,0,0.4)] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2 text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#F3F4F6] text-balance">
+                Ready to monitor your production APIs?
+              </h2>
+              <p className="text-sm text-[#9CA3AF] max-w-[58ch]">
+                Spin up 60-second synthetic checks with deterministic SSL verification or open the standalone API tester right now.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <Link
+                to="/test"
+                className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-[10px] bg-[#1A1F28] hover:bg-[#202633] border border-[#2A2F3A] text-[#F3F4F6] font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#06B6D4]"
+              >
+                Open API Tester
+              </Link>
+              <button
+                type="button"
+                onClick={() => navigate('/signup?plan=free')}
+                className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-2.5 rounded-[10px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold text-sm shadow-[0_6px_18px_rgba(0,0,0,0.45)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+              >
+                <span>Get Started Free</span>
+                <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-10 border-t border-[#2A2F3A] text-xs text-[#9CA3AF]">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8">
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="inline-flex items-center gap-2.5 min-h-[44px] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+          >
+            <span className="w-7 h-7 rounded-[8px] bg-[#7C3AED] flex items-center justify-center">
+              <Zap size={14} className="text-white fill-white" aria-hidden="true" />
+            </span>
+            <span className="text-base font-bold text-[#F3F4F6] tracking-tight">
+              API Monitor
+            </span>
+          </a>
+
+          <div className="flex flex-wrap items-center gap-6 text-sm text-[#9CA3AF]">
+            {NAV_LINKS.map((item) =>
+              item.isRoute ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="py-2 hover:text-[#F3F4F6] transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleAnchorClick(item.href);
+                  }}
+                  className="py-2 hover:text-[#F3F4F6] transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+                >
+                  {item.label}
+                </a>
+              )
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-sm">
+            <Link
+              to="/login"
+              className="min-h-[44px] inline-flex items-center px-3 text-[#D1D5DB] hover:text-white rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/signup?plan=free"
+              className="min-h-[44px] inline-flex items-center px-3.5 rounded-[10px] bg-[#1A1F28] border border-[#2A2F3A] text-[#F3F4F6] hover:bg-[#202633] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]"
+            >
+              Create Account
+            </Link>
+          </div>
         </div>
-      </section>
 
-      {/* ── 8. FOOTER (Exact match to Image 2 Bottom) ── */}
-      <footer className="max-w-7xl mx-auto px-6 pt-12 pb-10 border-t border-[#171720] text-xs text-neutral-400">
-        {/* Footer Top Row */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-              <Zap size={14} className="text-white fill-white" />
-            </div>
-            <span className="text-base font-bold text-white tracking-tight">API Monitor</span>
-          </div>
-
-          {/* Links */}
-          <div className="flex items-center gap-6 text-neutral-400 text-xs">
-            <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors cursor-pointer">
-              Product
-            </button>
-            <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors cursor-pointer">
-              Features
-            </button>
-            <button onClick={() => scrollToSection('pricing')} className="hover:text-white transition-colors cursor-pointer">
-              Pricing
-            </button>
-            <button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors cursor-pointer">
-              Docs
-            </button>
-          </div>
-
-          {/* Status & Socials */}
-          <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2 text-xs text-neutral-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>All Systems Operational</span>
-            </div>
-
-            <div className="w-px h-3.5 bg-neutral-800" />
-
-            {/* Social Icons */}
-            <div className="flex items-center gap-3 text-neutral-400">
-              {/* GitHub */}
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-white transition-colors p-1"
-                aria-label="GitHub"
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                </svg>
-              </a>
-
-              {/* X / Twitter */}
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-white transition-colors p-1"
-                aria-label="X / Twitter"
-              >
-                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </a>
-
-              {/* LinkedIn */}
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-white transition-colors p-1"
-                aria-label="LinkedIn"
-              >
-                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Bottom Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-[#12121A] text-neutral-500 text-[11px]">
-          <div>© 2025 API Monitor. All rights reserved.</div>
-          <div className="flex items-center gap-6">
-            <span className="hover:text-neutral-400 cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-neutral-400 cursor-pointer">Terms of Service</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-6 border-t border-[#1D212B] text-[#9CA3AF]">
+          <div>© 2026 API Monitor. Synthetic API observability.</div>
+          <div className="font-mono text-xs text-[#9CA3AF]">
+            5s fleet polling · 60s checks · JWT session auth
           </div>
         </div>
       </footer>
