@@ -414,19 +414,7 @@ export default function MonitorsPage() {
             <RefreshCw size={13} className={isLoading ? 'animate-spin text-purple-400' : ''} />
           </button>
 
-          {/* Seed Demo Fleet Button (Visible when fleet < 4) */}
-          {monitors.length < 4 && (
-            <button
-              onClick={handleSeedDemoFleet}
-              disabled={actionLoadingId !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#181818] hover:bg-[#222222] text-neutral-300 hover:text-purple-300 text-xs font-semibold border border-[#333333] transition-all cursor-pointer disabled:opacity-50"
-              title="Add 2-4 recommended demo endpoints (Operational, Down, Paused) to fleet"
-            >
-              <Sparkles size={13} className="text-purple-400" />
-              <span className="hidden sm:inline">Seed Demo Fleet</span>
-            </button>
-          )}
-
+                
           {/* Add Monitor Button */}
           <button
             onClick={() => {
@@ -858,9 +846,9 @@ export default function MonitorsPage() {
                     onChange={(e) => setNewInterval(Number(e.target.value))}
                     className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-[#262626] text-xs text-white focus:outline-none cursor-pointer"
                   >
-                    <option value={60}>60s (Recommended • -83% Redis load)</option>
-                    <option value={120}>120s (2m Demo Fleet)</option>
-                    <option value={300}>300s (5m)</option>
+                    <option value={60}>60s</option>
+                    <option value={120}>120s </option>
+                    <option value={300}>300s </option>
                     <option value={30}>30s</option>
                   </select>
                 </div>

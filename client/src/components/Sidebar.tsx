@@ -148,12 +148,7 @@ export default function Sidebar({ currentTab = 'dashboard', onTabChange }: Sideb
       </nav>
 
       {/* ── Status Pages ──────────────────────────────────────────────────── */}
-      <SectionLabel label="Status Pages" />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {STATUS_PAGES.map((p) => (
-          <SubItem key={p.id} label={p.label} status={p.status} />
-        ))}
-      </div>
+      
 
       {/* ── Live Backend Monitors ─────────────────────────────────────────── */}
       <SectionLabel

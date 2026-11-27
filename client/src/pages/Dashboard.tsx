@@ -751,10 +751,9 @@ export default function Dashboard() {
                     onChange={(e) => setNewInterval(Number(e.target.value))}
                     className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-[#262626] text-xs text-white focus:outline-none cursor-pointer"
                   >
-                    <option value={60}>60s (Recommended • -83% Redis load)</option>
-                    <option value={120}>120s (2m Demo Fleet)</option>
-                    <option value={300}>300s (5m)</option>
-                    <option value={30}>30s</option>
+                    <option value={60}>60s </option>
+                    <option value={120}>120s </option>
+                    <option value={300}>300s </option>
                   </select>
                 </div>
               </div>
