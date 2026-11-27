@@ -291,13 +291,7 @@ export default function LandingPage() {
                   <ArrowRight size={16} aria-hidden="true" />
                 </button>
 
-                <Link
-                  to="/test"
-                  className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 rounded-[10px] bg-[#1A1F28] hover:bg-[#202633] text-[#F3F4F6] border border-[#2A2F3A] hover:border-[#363D4A] font-semibold text-sm sm:text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#06B6D4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0C0D0F]"
-                >
-                  <Play size={15} className="text-[#06B6D4]" aria-hidden="true" />
-                  <span>Open API Tester</span>
-                </Link>
+               
               </div>
             </div>
 

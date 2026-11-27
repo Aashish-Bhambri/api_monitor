@@ -159,9 +159,7 @@ const SignupPage = () => {
         ========================================================= */}
         <div>
           <div className="flex items-center gap-3 relative z-10">
-            <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 ">
-              <Zap className="w-4 h-4 text-indigo-400" />
-            </div>
+              <Zap className="w-10 h-10  bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400" />
             <span className="text-lg font-bold tracking-tight text-white">
               API Monitor
             </span>
